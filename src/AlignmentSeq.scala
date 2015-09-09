@@ -97,15 +97,15 @@ class AlignmentSeq(genome : String, read : String) {
       return backtrace(x-1,y-1,"M"+alignment)
     else {
       
-      if(matrix(x)(y) == matrix(x)(y-1)-1) {
+      if(y != 0  && matrix(x)(y) == matrix(x)(y-1)-1) {
         return backtrace(x,y-1,"-"+alignment)
       }
     
-      if(matrix(x)(y) == matrix(x-1)(y)-1) {
+      if(x != 0 && matrix(x)(y) == matrix(x-1)(y)-1) {
         return backtrace(x-1,y,"-"+alignment)
       }
       
-      if (matrix(x)(y) == matrix(x-1)(y-1)) {
+      if ((x != 0 && y != 0) && matrix(x)(y) == matrix(x-1)(y-1)) {
         return backtrace(x-1,y-1,"m"+alignment)
       }
       
@@ -130,13 +130,9 @@ class AlignmentSeq(genome : String, read : String) {
    */
   override def toString() : String = {
     var str : String = ""
-    var spaces : String = ""
     for (y <- 0 until read.length()) {
       for (x <- 0 until maxSize) {
-        for (i <- 0 until 5 - y.toString().length())
-           spaces += " "
-        str += spaces + matrix(x)(y)
-        spaces = ""
+        str += "\t" + matrix(x)(y)
       }
       str += "\n"
       }
@@ -145,7 +141,7 @@ class AlignmentSeq(genome : String, read : String) {
 }
 
 object Main extends App {
- val s : AlignmentSeq = new AlignmentSeq("AAACATCGTTACAAAACATCGATGATACGATATGAC","ATGCAATATACGATAGCA")
+ val s : AlignmentSeq = new AlignmentSeq("AAACATCGTTACAAAACATCGATGATACGATATGAC","ATGCAATAT")
  s.computeMatrix(0, 0)
  s.buildBacktrace()
  print(s)
