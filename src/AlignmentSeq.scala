@@ -83,8 +83,46 @@ class AlignmentSeq(genome : String, read : String) {
   /**
    * rebuild the "path" to have the greatest score
    */
-  def backtrace() : Unit = {
-        
+  def backtrace(x : Int, y : Int, alignment : String) : String = {
+    
+    //reach origin
+    if (x == 0 && y == 0) {
+       if(genome.charAt(x) == read.charAt(y))
+         return "M"+alignment
+       else 
+         return "m"+alignment
+    }
+    
+    if(genome.charAt(x) == read.charAt(y))
+      return backtrace(x-1,y-1,"M"+alignment)
+    else {
+      
+      if(matrix(x)(y) == matrix(x)(y-1)-1) {
+        return backtrace(x,y-1,"-"+alignment)
+      }
+    
+      if(matrix(x)(y) == matrix(x-1)(y)-1) {
+        return backtrace(x-1,y,"-"+alignment)
+      }
+      
+      if (matrix(x)(y) == matrix(x-1)(y-1)) {
+        return backtrace(x-1,y-1,"m"+alignment)
+      }
+      
+    }
+    alignment
+  }
+  
+  def buildBacktrace() : Unit = {
+    var t : (Int, Int) = (-1,-1)
+    var max = -maxSize
+    for (x <- 0 until maxSize) {
+      if (matrix(x)(read.length()-1) > max) {
+        max = matrix(x)(read.length()-1) 
+        t=(x,read.length()-1)
+      }
+    }
+    println(backtrace(t._1,t._2, ""))
   }
    
   /**
@@ -107,8 +145,9 @@ class AlignmentSeq(genome : String, read : String) {
 }
 
 object Main extends App {
- val s : AlignmentSeq = new AlignmentSeq("AAAA","AAAA")
+ val s : AlignmentSeq = new AlignmentSeq("AAACATCGTTACAAAACATCGATGATACGATATGAC","ATGCAATATACGATAGCA")
  s.computeMatrix(0, 0)
+ s.buildBacktrace()
  print(s)
 }
 
