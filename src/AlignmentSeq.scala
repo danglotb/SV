@@ -38,15 +38,14 @@ class AlignmentSeq(genome : String, read : String) {
       
     //End of row
     if (x == maxSize) {
-      computeMatrix(0, y+1) 
-      return matrix
+      return computeMatrix(0, y+1)
     }
     
     //First case
     if (x == 0 && y == 0) {
         if(genome.charAt(x) == read.charAt(y)) {
           matrix(x)(y) = 1
-          computeMatrix(x+1, y+1)
+          computeMatrix(x+1, y)
         } else {
           matrix(x)(y) = 0
           computeMatrix(x+1, y)
@@ -56,27 +55,34 @@ class AlignmentSeq(genome : String, read : String) {
      if (y == 0) {
       if(genome.charAt(x) == read.charAt(y)) {
             matrix(x)(y) = matrix(x-1)(y)+1//match
-            computeMatrix(x+1, y+1)
-        } else
-          matrix(x)(y) = matrix(x-1)(y)-1//indel on i//indel on i
+            computeMatrix(x+1, y)
+        } else {
+          matrix(x)(y) = matrix(x-1)(y)-1//indel on i
+          computeMatrix(x+1, y)
+        }
       //first column
       } else if (x == 0) {
         if(genome.charAt(x) == read.charAt(y)) {
             matrix(x)(y) = matrix(x)(y-1)+1//match
-            computeMatrix(x+1, y+1)
-        } else
+            computeMatrix(x+1, y)
+        } else {
           matrix(x)(y) = matrix(x)(y-1)-1
+          computeMatrix(x+1, y)
+        }
       } else if(genome.charAt(x) == read.charAt(y)) {
         matrix(x)(y) = matrix(x-1)(y-1)+1
-        computeMatrix(x+1, y+1)
+        computeMatrix(x+1, y)
       } else if(matrix(x)(y-1)-1 > matrix(x-1)(y)-1) {//indel on j
         matrix(x)(y) = matrix(x)(y-1)-1
+        computeMatrix(x+1, y)
       } else if (matrix(x-1)(y)-1 > matrix(x-1)(y-1)) {//indel on i
         matrix(x)(y) = matrix(x-1)(y)-1
+        computeMatrix(x+1, y)
       } else {//mismatch
         matrix(x)(y) = matrix(x-1)(y-1)
+        computeMatrix(x+1, y)
       }
-      computeMatrix(x+1, y)
+    
     }
   }
   
@@ -84,32 +90,29 @@ class AlignmentSeq(genome : String, read : String) {
    * rebuild the "path" to have the greatest score
    */
   def backtrace(x : Int, y : Int, alignment : String) : String = {
-    
     //reach origin
     if (x == 0 && y == 0) {
        if(genome.charAt(x) == read.charAt(y))
          return "M"+alignment
        else 
          return "m"+alignment
-    }
-    
-    if(genome.charAt(x) == read.charAt(y))
-      return backtrace(x-1,y-1,"M"+alignment)
-    else {
-      
-      if(y != 0  && matrix(x)(y) == matrix(x)(y-1)-1) {
-        return backtrace(x,y-1,"-"+alignment)
+    } else {
+        if(genome.charAt(x) == read.charAt(y))
+          return backtrace(Math.max(x-1,0),Math.max(y-1,0),"M"+alignment)
+        else {
+          if(y == 0) {
+            return backtrace(x-1,y,"-"+alignment)
+          } else if(x == 0) {
+            return backtrace(x,y-1,"+"+alignment)
+          } else if(matrix(x)(y) == matrix(x)(y-1)-1) {
+            return backtrace(x,y-1,"-"+alignment)
+          } else if(matrix(x)(y) == matrix(x-1)(y)-1) {
+            return backtrace(x-1,y,"+"+alignment)
+          } else if (matrix(x)(y) == matrix(x-1)(y-1)) {
+            return backtrace(x-1,y-1,"m"+alignment)
+          }
+        } 
       }
-    
-      if(x != 0 && matrix(x)(y) == matrix(x-1)(y)-1) {
-        return backtrace(x-1,y,"-"+alignment)
-      }
-      
-      if ((x != 0 && y != 0) && matrix(x)(y) == matrix(x-1)(y-1)) {
-        return backtrace(x-1,y-1,"m"+alignment)
-      }
-      
-    }
     alignment
   }
   
@@ -122,7 +125,22 @@ class AlignmentSeq(genome : String, read : String) {
         t=(x,read.length()-1)
       }
     }
-    println(backtrace(t._1,t._2, ""))
+    println(t)
+    val alignment : String = backtrace(t._1,t._2, "")
+    var index : Int = 0
+    var genomeAligned : String = ""
+    println(alignment)
+    alignment.foreach { x =>
+      x match {
+        case 'M' => genomeAligned = genomeAligned+genome.charAt(index)
+        case 'm' => genomeAligned = genomeAligned+genome.charAt(index)
+        case '-' => genomeAligned = genomeAligned+"-"
+        case '+' => genomeAligned = genomeAligned+"+"
+      }
+      index += 1
+    }
+    println(genomeAligned)
+    println(read)
   }
    
   /**
@@ -141,7 +159,7 @@ class AlignmentSeq(genome : String, read : String) {
 }
 
 object Main extends App {
- val s : AlignmentSeq = new AlignmentSeq("AAACATCGTTACAAAACATCGATGATACGATATGAC","ATGCAATAT")
+ val s : AlignmentSeq = new AlignmentSeq("gaattcgagatgcgaatgagcagcagccattttgatgttgtgagcatcggaacgtttctg","ggcacgaggc")
  s.computeMatrix(0, 0)
  s.buildBacktrace()
  print(s)
