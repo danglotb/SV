@@ -120,19 +120,15 @@ class AlignmentSeq(genome : String, read : String, k : Int) {
    */
   def buildBacktrace() : Unit = {
     val listCoordMax : scala.collection.mutable.ListBuffer[(Int, Int)] = new scala.collection.mutable.ListBuffer[(Int, Int)]()
-    var t : (Int, Int) = (-1,-1)
     var max = -borderX
-    for (x <- 0 until borderX) {
-      if (matrix(x)(borderY-1) > max) {
+    for (x <- 0 until borderX)
+      if (matrix(x)(borderY-1) > max)
         max = matrix(x)(borderY-1) 
-        t=(x,read.length()-1)
-      }
-    }
     
     for (x <- 0 until borderX)
       if (matrix(x)(borderY-1) == max) 
         listCoordMax += ( (x, (borderY-1)) )
-        
+    println("Max Score : " + max)
     listCoordMax.foreach { c =>
        var indexGen : Int = 0
        var indexRead : Int = 0

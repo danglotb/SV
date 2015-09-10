@@ -1,6 +1,18 @@
 package sequencing.util;
 
-object Parser {
+class Parser(pathname : Any, sizeOfChunk : Int = 5) {
+
+  if (pathname == null) {
+     usage()
+     System.exit(1)
+  }
+  
+  val source = scala.io.Source.fromFile(pathname.toString)
+  
+  val iterator : Iterator[String] = source getLines
+  
+  if (pathname.toString.endsWith(".fasta"))
+   (iterator next)
   
   def usage() : Unit = {
      print("This applications need at least this two options : \n")
@@ -8,39 +20,25 @@ object Parser {
      print("\t-r <pathToReadFile> to specify the path the read file.\n")
    }
   
- def parseFasta(pathname : String) : String = {
-  val source = scala.io.Source.fromFile(pathname.toString)
+  /**
+   * return a part of the file
+   */
+  def parse() : String = {
+    var str : String = ""
+    for (i <- 0 until sizeOfChunk) {
+      str += (iterator next)
+    }
+    return str
+  }
   
-  val iterator = source getLines
-  
-  //Trash the first line : isn't used
-  (iterator next)
-  
-  var read : String = "" 
-  
-  for (i <- 0 until 1) 
-    read += (iterator next)
-    
-  read
- }
- 
- def parse(pathname : String) : String = {
-     val source = scala.io.Source.fromFile(pathname.toString)
-     val iterator = source getLines
-     var read : String = "" 
-      while (iterator hasNext)
-      read += (iterator next)
-  read
- }
-  
- def parseFile(pathname : Any) : String = {
-   if (pathname == null) {
-     usage()
-     System.exit(1)
-   }
-   if (pathname.toString.endsWith(".fasta"))
-     return parseFasta(pathname.toString())
-   else
-     return parse(pathname.toString())
- }
+  /**
+   * use in case of read
+   */
+  def parseAll() : String = {
+    var str : String = ""
+    while(iterator hasNext) {
+      str += (iterator next)
+    }
+    return str
+  }
 }
