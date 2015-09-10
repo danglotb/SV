@@ -5,13 +5,26 @@
  */
 
 object AlignmentOption {
-   def option(args : Array[String]): Map[String, String] = {
-    var opt = Map[String,String]()
-    opt
+  
+   type Options = Map[String, Any]
+
+  def options(opt: Options, args: List[String]): Options = {
+    if (args.isEmpty) return opt
+    args match {
+      case "-g" :: genome :: tail => options(opt++Map("genome" -> genome), tail)
+      case "-r" :: read :: tail => options(opt++Map("read" -> read), tail)
+      case "-k" :: k :: tail => options(opt++Map("k" -> k), tail)
+      case "-h" :: tail => usage() ; opt
+      case _ => usage() ; opt
+     }
    }
    
    def usage() : Unit = {
-     println("")
+     print("Options availables : \n")
+     print("\t-g <pathToGenomeFile> to specify the path the genome file.\n")
+     print("\t-r <pathToReadFile> to specify the path the read file.\n")
+     print("\t-k <IntValue> to specify the numbers of errors.\n")
+     System.exit(1)
    }
 }
 
@@ -19,9 +32,10 @@ object AlignmentOption {
  * Class to build alignment between
  * @args : genome
  * @args : read
+ * @args : k errors
  * Using +1 in case of match, -1 when there is a deletion/insertion and 0 if mismatch
  */
-class AlignmentSeq(genome : String, read : String) {
+class AlignmentSeq(genome : String, read : String, k : Int) {
   
   /**
    * border of the x 
@@ -171,8 +185,43 @@ class AlignmentSeq(genome : String, read : String) {
   }
 }
 
+object Parser {
+  
+  def usage() : Unit = {
+     print("This applications need at least this two options : \n")
+     print("\t-g <pathToGenomeFile> to specify the path the genome file.\n")
+     print("\t-r <pathToReadFile> to specify the path the read file.\n")
+   }
+  
+ def parseFasta(pathname : String) : String = {
+  val source = scala.io.Source.fromFile(pathname.toString)
+  ""
+ }
+ 
+ def parse(pathname : String) : String = {
+     val source = scala.io.Source.fromFile(pathname.toString)
+     ""
+ }
+  
+  
+ def parseFile(pathname : Any) : String = {
+   if (pathname == null) {
+     usage()
+     System.exit(1)
+   }
+   if (pathname.toString.endsWith(".fasta"))
+     return parseFasta(pathname.toString())
+   else
+     return parse(pathname.toString())
+ }
+}
+
+
 object Main extends App {
- val s : AlignmentSeq = new AlignmentSeq("gaattcgagatgcgaatgagcagcagccattttgatgttgtgagcatcggaacgtttctg","ggcacgaggc")
+ val options = AlignmentOption.options(Map(), args.toList)
+ val genome = Parser.parseFile(options.getOrElse("genome", null))
+ val read = Parser.parseFile(options.getOrElse("read", null))
+ val s : AlignmentSeq = new AlignmentSeq("gaattcgagatgcgaatgagcagcagccattttgatgttgtgagcatcggaacgtttctg","ggcacgaggc",0)
  s.initMatrix()
  print(s)
  s.buildBacktrace()
