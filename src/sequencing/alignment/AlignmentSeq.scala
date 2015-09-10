@@ -78,6 +78,8 @@ class AlignmentSeq(genome : String, read : String, k : Int) {
       return
     else if (x == borderX) 
       computeMatrix(1,y+1)
+    else if (math.abs(x-y) > k)
+      computeMatrix(x+1,y)
     else {
       if (genome.charAt(x) == read.charAt(y))
         matrix(x)(y) = matrix(x-1)(y-1)+1
