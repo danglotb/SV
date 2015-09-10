@@ -75,11 +75,12 @@ class AlignmentSeq(genome : String, read : String, k : Int) {
       computeMatrix(1,y+1)
     else {
       if (genome.charAt(x) == read.charAt(y))
-            matrix(x)(y) = matrix(x-1)(y-1)+1
-          else
-            matrix(x)(y) = Math.max(matrix(x-1)(y-1),Math.max(matrix(x-1)(y)-1,matrix(x)(y-1)-1))
+        matrix(x)(y) = matrix(x-1)(y-1)+1
+      else {
+        matrix(x)(y) = Math.max(matrix(x-1)(y-1),Math.max(matrix(x-1)(y)-1,matrix(x)(y-1)-1))
+      }
       computeMatrix(x+1,y)
-    }
+   }
   }
   
   /**
@@ -195,12 +196,27 @@ object Parser {
   
  def parseFasta(pathname : String) : String = {
   val source = scala.io.Source.fromFile(pathname.toString)
-  ""
+  
+  val iterator = source getLines
+  
+  //Trash the first line : isn't used
+  (iterator next)
+  
+  var read : String = "" 
+  
+  for (i <- 0 until 1) 
+    read += (iterator next)
+    
+  read
  }
  
  def parse(pathname : String) : String = {
      val source = scala.io.Source.fromFile(pathname.toString)
-     ""
+     val iterator = source getLines
+     var read : String = "" 
+      while (iterator hasNext)
+      read += (iterator next)
+  read
  }
   
   
@@ -221,7 +237,7 @@ object Main extends App {
  val options = AlignmentOption.options(Map(), args.toList)
  val genome = Parser.parseFile(options.getOrElse("genome", null))
  val read = Parser.parseFile(options.getOrElse("read", null))
- val s : AlignmentSeq = new AlignmentSeq("gaattcgagatgcgaatgagcagcagccattttgatgttgtgagcatcggaacgtttctg","ggcacgaggc",0)
+ val s : AlignmentSeq = new AlignmentSeq( "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC", "CTGGAGCCGATAAACGCCGGGAA" ,options.getOrElse("k", 0).toString().toInt)
  s.initMatrix()
  print(s)
  s.buildBacktrace()
