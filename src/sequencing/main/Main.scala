@@ -10,15 +10,11 @@ object Main extends App {
  val read = new Parser(options.getOrElse("read", null))
  val readStr =  read.parseAll().substring(0,50)
  
- var s : AlignmentSeq = new AlignmentSeq(genome.parse(), readStr ,options.getOrElse("k", 0).toString().toInt)
- s.initMatrix()
- s.buildBacktrace()
+ var s : AlignmentSeq = new AlignmentSeq(readStr ,options.getOrElse("k", 0).toString().toInt)
  
- s = new AlignmentSeq(genome.parse(), readStr ,options.getOrElse("k", 0).toString().toInt)
- s.initMatrix()
- s.buildBacktrace()
+// while(genome hasNext) {
+   s.initMatrix(genome.parse())
+   s.buildBacktrace()
+// }
  
- s = new AlignmentSeq(genome.parse(), readStr ,options.getOrElse("k", 0).toString().toInt)
- s.initMatrix()
- s.buildBacktrace()
 }

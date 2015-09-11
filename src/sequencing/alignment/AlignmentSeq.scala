@@ -40,7 +40,9 @@ object AlignmentOption {
  * @args : k errors
  * Using +1 in case of match, -1 when there is a deletion/insertion and 0 if mismatch
  */
-class AlignmentSeq(genome : String, read : String, k : Int) {
+class AlignmentSeq(read : String, k : Int) {
+  
+  var genome : String = ""
   
   /**
    * border of the x 
@@ -61,12 +63,13 @@ class AlignmentSeq(genome : String, read : String, k : Int) {
   /**
    * Method init to fill the 1rst row/col and launch the computation at (1,1)
    */
-  def initMatrix() : Unit = {
+  def initMatrix(genome : String) : Unit = {
+    this.genome = genome
     for (x <- 0 until borderX)
       matrix(x)(0) = -x
     for (y <- 0 until borderY)
       matrix(0)(y) = -y
-    matrix(0)(0) = if(genome.charAt(0) == read.charAt(0)) 1 else 0
+    matrix(0)(0) = if(this.genome.charAt(0) == read.charAt(0)) 1 else 0
     computeMatrix(1,1)
   }
   

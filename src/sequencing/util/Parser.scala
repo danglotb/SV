@@ -26,7 +26,8 @@ class Parser(pathname : Any, sizeOfChunk : Int = 5) {
   def parse() : String = {
     var str : String = ""
     for (i <- 0 until sizeOfChunk) {
-      str += (iterator next)
+      if (iterator hasNext)
+        str += (iterator next)
     }
     return str
   }
@@ -41,4 +42,7 @@ class Parser(pathname : Any, sizeOfChunk : Int = 5) {
     }
     return str
   }
+  
+  def hasNext() : Boolean = iterator hasNext
+  
 }
