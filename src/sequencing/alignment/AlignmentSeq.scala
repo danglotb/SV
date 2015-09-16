@@ -34,7 +34,7 @@ object AlignmentOption {
 }
 
 class AlignmentSeq(matchScore : Int, mismatchScore : Int,
-    indelScore : Int, genY : String, genX : String, k : Int) {
+    indelScore : Int, genX : String, genY : String, k : Int) {
   
   /**
    * border of the x 
@@ -60,72 +60,59 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     for (y <- 0 until borderY)
       matrix(0)(y) = -y
     matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) 1 else 0
-//    computeMatrix(1,1)
-    computeMatrixLoop
+    computeMatrix
   }
   
-  /**
-   * The real method for compute the whole matrix of score
-   */
-  def computeMatrix(x : Int, y : Int) : Unit = {
-    if (y == borderY) 
-      return
-    else if (x == borderX) 
-      computeMatrix(1,y+1)
-    else if (math.abs(x-y) > k)
-      if (x > y)
-        computeMatrix(1,y+1)
-      else
-        computeMatrix(x+1,y)
-    else {
-      if (genX.charAt(x) == genY.charAt(y))
-        matrix(x)(y) = matrix(x-1)(y-1)+matchScore
-      else {
-        matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore,Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
-      }
-      computeMatrix(x+1,y)
-   }
-  }
-  
-  def computeMatrixLoop() : Unit = {
-        
-    for (y <- 1 until borderY) {
-      for (x <- 1 until borderX) {
+  def computeMatrix : Unit = {
+		var y : Int = 1
+		var x : Int = 1
+		while (x != borderX-1 || y != borderY-1) {
+      if (x == borderX) {
+        x = 1
+        y += 1
+      } else {
         if (genX.charAt(x) == genY.charAt(y))
-        matrix(x)(y) = matrix(x-1)(y-1)+matchScore
-      else 
-        matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore,Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
+  		    matrix(x)(y) = matrix(x-1)(y-1)+matchScore
+  			else 
+  			  matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore, Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
+        x += 1
+      }
+	  }
+  }
+  
+  def backtrace(start : (Int, Int)) : String = {
+    var x : Int = start._1
+    var y : Int = start._2
+    var alignment : String = ""
+    while (x != 0 || y != 0) {
+     if (x == 0) {//insertion 
+         alignment = "+"+alignment
+         y -= 1
+     } else if (y == 0) {//deletion
+         alignment =  "-"+alignment
+         x -= 1
+     } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
+         alignment = "|"+alignment
+         y -= 1
+         x -= 1
+      } else if(matrix(x)(y) == matrix(x-1)(y-1)+mismatchScore) {//mismatch
+         alignment = " "+alignment
+         y -= 1
+         x -= 1
+      } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
+          alignment =  "-"+alignment
+         x -= 1
+      } else if(matrix(x)(y) == matrix(x)(y-1)+indelScore) {//insertion 
+         alignment = "+"+alignment
+         y -= 1
       }
     }
+    if(genX.charAt(x) == genY.charAt(y))
+         return "|"+alignment//match
+    else
+         return " "+alignment//mismatch
   }
   
-  /**
-   * Method to build the backtrace from the matrix
-   */
-  def backtrace(x : Int, y : Int, alignment : String) : String = {
-    if (x == 0 && y == 0) {
-       if(genX.charAt(x) == genY.charAt(y))
-         return "|"+alignment//match
-       else
-         return " "+alignment//mismatch
-     } else if (x == 0) {
-       backtrace(x, y-1, "+"+alignment)//insertion 
-     } else if (y == 0) {
-       backtrace(x-1, y, "-"+alignment)//deletion
-     } else {
-       if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore)//match
-         backtrace(x-1,y-1, "|"+alignment)
-       else if(matrix(x)(y) == matrix(x-1)(y-1)+mismatchScore)//mismatch
-         backtrace(x-1,y-1, " "+alignment)
-       else if(matrix(x)(y) == matrix(x-1)(y)+indelScore)//deletion
-         backtrace(x-1, y, "-"+alignment)
-       else if(matrix(x)(y) == matrix(x)(y-1)+indelScore)//insertion 
-         backtrace(x,y-1,"+"+alignment)
-       else
-         return alignment
-     }
-    
-  }
   
   /**
    * Method to build the backtrace after the computation of the matrix and provide a print in stdout of the alignment
@@ -147,7 +134,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
        var genomeAligned : String = ""
        var readAligned : String = ""
        var alignment : String = ""
-       val alignmentVal : String = backtrace(c._1,c._2, "")
+       val alignmentVal : String = backtrace( (c._1,c._2) )
        alignmentVal.foreach { a =>
         a match {
         case '|' => {
@@ -166,14 +153,14 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
         }
         case '-' => {
           genomeAligned = genomeAligned + genX.charAt(indexGen)
-          readAligned = readAligned + " "
-          alignment = alignment + "-"
+          readAligned = readAligned + "-"
+          alignment = alignment + " "
           indexGen = indexGen + 1
         }
         case '+' => {
-          genomeAligned = genomeAligned + " "
+          genomeAligned = genomeAligned + "+"
           readAligned = readAligned + genY.charAt(indexRead)
-          alignment = alignment + "+"
+          alignment = alignment + " "
           indexRead = indexRead + 1
         }
         }
