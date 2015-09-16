@@ -4,17 +4,15 @@ import sequencing.util._
 import sequencing.alignment._
 
 object Main extends App {
+
+//  val gen1 = new Parser("input/read").parseAll()
+//  val gen2 = new Parser("input/genome").parseAll()
   
- val options = AlignmentOption.options(Map(), args.toList)
- val genome = new Parser(options.getOrElse("genome", null), 2)
- val read = new Parser(options.getOrElse("read", null))
- val readStr =  read.parseAll().substring(0,50)
- 
- var s : AlignmentSeq = new AlignmentSeq(readStr ,options.getOrElse("k", 0).toString().toInt)
- 
-// while(genome hasNext) {
-   s.initMatrix(genome.parse())
-   s.buildBacktrace()
-// }
- 
+  val gen1 = new Parser("input/NC_002549.fna").parseAll()
+  val gen2 = new Parser("input/NC_006432.fna").parseAll()
+
+  val s: AlignmentSeq = new AlignmentSeq(5, -4, -10, gen1, gen2, 3)
+  s.initMatrix
+//  println(s)
+  s.buildBacktrace()
 }

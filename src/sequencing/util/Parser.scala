@@ -11,7 +11,7 @@ class Parser(pathname : Any, sizeOfChunk : Int = 5) {
   
   val iterator : Iterator[String] = source getLines
   
-  if (pathname.toString.endsWith(".fasta"))
+  if (pathname.toString.endsWith(".fasta") || pathname.toString.endsWith(".fna"))
    (iterator next)
   
   def usage() : Unit = {

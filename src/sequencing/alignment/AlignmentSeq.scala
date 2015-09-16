@@ -33,44 +33,35 @@ object AlignmentOption {
    }
 }
 
-/**
- * Class to build alignment between
- * @args : genome
- * @args : read
- * @args : k errors
- * Using +1 in case of match, -1 when there is a deletion/insertion and 0 if mismatch
- */
-class AlignmentSeq(read : String, k : Int) {
-  
-  var genome : String = ""
+class AlignmentSeq(matchScore : Int, mismatchScore : Int,
+    indelScore : Int, genY : String, genX : String, k : Int) {
   
   /**
    * border of the x 
    */
-  val borderX : Int = Math.max(genome.length()/2 ,read.length())
+  val borderX : Int = genX.length()
   
   /**
    * border of the y
    */
-  val borderY : Int = read.length()
-  
+  val borderY : Int = genY.length()
 
   /**
    * matrix of scores
    */
-  var matrix = Array ofDim[Int](borderX, borderY)
+  val matrix = Array ofDim[Int](borderX, borderY)
 
   /**
    * Method init to fill the 1rst row/col and launch the computation at (1,1)
    */
-  def initMatrix(genome : String) : Unit = {
-    this.genome = genome
+  def initMatrix() : Unit = {
     for (x <- 0 until borderX)
       matrix(x)(0) = -x
     for (y <- 0 until borderY)
       matrix(0)(y) = -y
-    matrix(0)(0) = if(this.genome.charAt(0) == read.charAt(0)) 1 else 0
-    computeMatrix(1,1)
+    matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) 1 else 0
+//    computeMatrix(1,1)
+    computeMatrixLoop
   }
   
   /**
@@ -83,25 +74,37 @@ class AlignmentSeq(read : String, k : Int) {
       computeMatrix(1,y+1)
     else if (math.abs(x-y) > k)
       if (x > y)
-          computeMatrix(1,y+1)
+        computeMatrix(1,y+1)
       else
         computeMatrix(x+1,y)
     else {
-      if (genome.charAt(x) == read.charAt(y))
-        matrix(x)(y) = matrix(x-1)(y-1)+1
+      if (genX.charAt(x) == genY.charAt(y))
+        matrix(x)(y) = matrix(x-1)(y-1)+matchScore
       else {
-        matrix(x)(y) = Math.max(matrix(x-1)(y-1),Math.max(matrix(x-1)(y)-1,matrix(x)(y-1)-1))
+        matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore,Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
       }
       computeMatrix(x+1,y)
    }
+  }
+  
+  def computeMatrixLoop() : Unit = {
+        
+    for (y <- 1 until borderY) {
+      for (x <- 1 until borderX) {
+        if (genX.charAt(x) == genY.charAt(y))
+        matrix(x)(y) = matrix(x-1)(y-1)+matchScore
+      else 
+        matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore,Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
+      }
+    }
   }
   
   /**
    * Method to build the backtrace from the matrix
    */
   def backtrace(x : Int, y : Int, alignment : String) : String = {
-     if (x == 0 && y == 0) {
-       if(genome.charAt(x) == read.charAt(y))
+    if (x == 0 && y == 0) {
+       if(genX.charAt(x) == genY.charAt(y))
          return "|"+alignment//match
        else
          return " "+alignment//mismatch
@@ -110,17 +113,18 @@ class AlignmentSeq(read : String, k : Int) {
      } else if (y == 0) {
        backtrace(x-1, y, "-"+alignment)//deletion
      } else {
-       if(matrix(x)(y) == matrix(x-1)(y-1)+1)//match
+       if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore)//match
          backtrace(x-1,y-1, "|"+alignment)
-       else if(matrix(x)(y) == matrix(x-1)(y-1))
-         backtrace(x-1,y-1, " "+alignment)//mismatch
-       else if(matrix(x)(y) == matrix(x-1)(y)-1)//deletion
+       else if(matrix(x)(y) == matrix(x-1)(y-1)+mismatchScore)//mismatch
+         backtrace(x-1,y-1, " "+alignment)
+       else if(matrix(x)(y) == matrix(x-1)(y)+indelScore)//deletion
          backtrace(x-1, y, "-"+alignment)
-       else if(matrix(x)(y) == matrix(x)(y-1)-1)//insertion 
+       else if(matrix(x)(y) == matrix(x)(y-1)+indelScore)//insertion 
          backtrace(x,y-1,"+"+alignment)
        else
          return alignment
      }
+    
   }
   
   /**
@@ -136,7 +140,7 @@ class AlignmentSeq(read : String, k : Int) {
     for (x <- 0 until borderX)
       if (matrix(x)(borderY-1) == max) 
         listCoordMax += ( (x, (borderY-1)) )
-    println("Max Score : " + max)
+    println("Max Score : " + max )
     listCoordMax.foreach { c =>
        var indexGen : Int = 0
        var indexRead : Int = 0
@@ -147,28 +151,28 @@ class AlignmentSeq(read : String, k : Int) {
        alignmentVal.foreach { a =>
         a match {
         case '|' => {
-          genomeAligned = genomeAligned + genome.charAt(indexGen)
-          readAligned = readAligned + read.charAt(indexRead)
+          genomeAligned = genomeAligned + genX.charAt(indexGen)
+          readAligned = readAligned + genY.charAt(indexRead)
           alignment = alignment + "|"
           indexRead = indexRead + 1
           indexGen = indexGen + 1
         }
         case ' ' => {
-          genomeAligned = genomeAligned + genome.charAt(indexGen)
-          readAligned = readAligned + read.charAt(indexRead)
+          genomeAligned = genomeAligned + genX.charAt(indexGen)
+          readAligned = readAligned + genY.charAt(indexRead)
           alignment = alignment + " "
           indexRead = indexRead + 1
           indexGen = indexGen + 1
         }
         case '-' => {
-          genomeAligned = genomeAligned + genome.charAt(indexGen)
+          genomeAligned = genomeAligned + genX.charAt(indexGen)
           readAligned = readAligned + " "
           alignment = alignment + "-"
           indexGen = indexGen + 1
         }
         case '+' => {
           genomeAligned = genomeAligned + " "
-          readAligned = readAligned + read.charAt(indexRead)
+          readAligned = readAligned + genY.charAt(indexRead)
           alignment = alignment + "+"
           indexRead = indexRead + 1
         }
@@ -185,7 +189,7 @@ class AlignmentSeq(read : String, k : Int) {
    */
   override def toString() : String = {
     var str : String = ""
-    for (y <- 0 until read.length()) {
+    for (y <- 0 until genY.length()) {
       for (x <- 0 until borderX) {
         str += "\t" + matrix(x)(y)
       }
