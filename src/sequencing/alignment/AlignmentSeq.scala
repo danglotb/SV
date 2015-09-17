@@ -36,6 +36,7 @@ object AlignmentOption {
 class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     indelScore : Int, genX : String, genY : String, k : Int) {
   
+  
   /**
    * border of the x 
    */
@@ -51,39 +52,25 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
    */
   val matrix = Array ofDim[Int](borderX, borderY)
 
-  /**
-   * Method init to fill the 1rst row/col and launch the computation at (1,1)
-   */
-  def initMatrix() : Unit = {
+  def computeMatrix : Unit = {
     for (x <- 0 until borderX)
       matrix(x)(0) = -x
     for (y <- 0 until borderY)
       matrix(0)(y) = -y
     matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) 1 else 0
-    computeMatrix
-  }
-  
-  def computeMatrix : Unit = {
-		var y : Int = 1
-		var x : Int = 1
-		while (x != borderX-1 || y != borderY-1) {
-      if (x == borderX) {
-        x = 1
-        y += 1
-      } else {
+    for (y <- 1 until borderY)
+      for (x <- Math.max(1, Math.abs(y-k)) until borderX) {
         if (genX.charAt(x) == genY.charAt(y))
-  		    matrix(x)(y) = matrix(x-1)(y-1)+matchScore
-  			else 
-  			  matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore, Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
-        x += 1
+          matrix(x)(y) = matrix(x-1)(y-1)+matchScore
+        else 
+          matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore, Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
       }
-	  }
   }
   
   def backtrace(start : (Int, Int)) : String = {
     var x : Int = start._1
     var y : Int = start._2
-    var alignment : String = ""
+    var alignment : String = "-" * (borderX - start._1 -1)
     while (x != 0 || y != 0) {
      if (x == 0) {//insertion 
          alignment = "+"+alignment
@@ -127,7 +114,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     for (x <- 0 until borderX)
       if (matrix(x)(borderY-1) == max) 
         listCoordMax += ( (x, (borderY-1)) )
-    println("Max Score : " + max )
+    println("Max Score : " + max)
     listCoordMax.foreach { c =>
        var indexGen : Int = 0
        var indexRead : Int = 0
