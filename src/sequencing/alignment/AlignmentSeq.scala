@@ -11,63 +11,81 @@ package sequencing.alignment
  */
 object AlignmentOption {
   
-   type Options = Map[String, Any]
+  type Options = Map[String, Any]
 
+  /**
+   * method to parse and build a map of the options
+   */
   def options(opt: Options, args: List[String]): Options = {
     if (args.isEmpty) return opt
     args match {
-      case "-g" :: genome :: tail => options(opt++Map("genome" -> genome), tail)
-      case "-r" :: read :: tail => options(opt++Map("read" -> read), tail)
+      case "-m" :: score :: tail => options(opt++Map("match" -> score), tail)
+      case "-mm" :: score :: tail => options(opt++Map("mismatch" -> score), tail)
+      case "-i" :: score :: tail => options(opt++Map("indel" -> score), tail)
       case "-k" :: k :: tail => options(opt++Map("k" -> k), tail)
+      case "-f" :: gen1 :: gen2 :: tail => options( (opt++Map("gen1" -> gen1))++Map("gen2" -> gen2), tail)
       case "-h" :: tail => usage() ; opt
       case _ => usage() ; opt
      }
    }
-   
+
+   /**
+    * print in stdout available option
+    */
    def usage() : Unit = {
      print("Options availables : \n")
-     print("\t-g <pathToGenomeFile> to specify the path the genome file.\n")
-     print("\t-r <pathToReadFile> to specify the path the read file.\n")
-     print("\t-k <IntValue> to specify the numbers of errors.\n")
+     print("\t-m <IntValue> to specify the score of a match(5 if not)\n")
+     print("\t-mm <IntValue> to specify the score of a mismatch(-4 if not)\n")
+     print("\t-i <IntValue> to specify the score of a indel(-10 if not, deletion/insertion)\n")
+     print("\t-k <IntValue> to specify the numbers of errors(3 if not)\n")
+     print("\t-file <pathToFile> <pathToFile> to specify files of gen you align.\n")
      System.exit(1)
    }
 }
 
+/**
+ * Class to align to sequence
+ */
 class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     indelScore : Int, genX : String, genY : String, k : Int) {
-  
   
   /**
    * border of the x 
    */
-  val borderX : Int = genX.length()
+  private val borderX : Int = genX.length()
   
   /**
    * border of the y
    */
-  val borderY : Int = genY.length()
+  private val borderY : Int = genY.length()
 
   /**
    * matrix of scores
    */
-  val matrix = Array ofDim[Int](borderX, borderY)
+  private val matrix = Array ofDim[Int](borderX, borderY)
 
-  def computeMatrix : Unit = {
+  /**
+   * Compute the matrix
+   */
+  def compute : Unit = {
     for (x <- 0 until borderX)
       matrix(x)(0) = -x
     for (y <- 0 until borderY)
       matrix(0)(y) = -y
-    matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) 1 else 0
+    matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) matchScore else mismatchScore
     for (y <- 1 until borderY)
       for (x <- Math.max(1, Math.abs(y-k)) until borderX) {
-        if (genX.charAt(x) == genY.charAt(y))
-          matrix(x)(y) = matrix(x-1)(y-1)+matchScore
-        else 
-          matrix(x)(y) = Math.max(matrix(x-1)(y-1)+mismatchScore, Math.max(matrix(x-1)(y)+indelScore,matrix(x)(y-1)+indelScore))
+          if (genX.charAt(x) == genY.charAt(y))
+            matrix(x)(y) = matrix(x-1)(y-1)+matchScore
+          else 
+            matrix(x)(y) = Math.max(matrix(x)(y-1)+indelScore, Math.max(matrix(x-1)(y-1)+mismatchScore,matrix(x-1)(y)+indelScore))
       }
   }
   
-  def backtrace(start : (Int, Int)) : String = {
+  /**
+   * build a string of the operations made to align
+   */
+  private def buildBacktrace(start : (Int, Int)) : String = {
     var x : Int = start._1
     var y : Int = start._2
     var alignment : String = "-" * (borderX - start._1 -1)
@@ -86,12 +104,12 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
          alignment = " "+alignment
          y -= 1
          x -= 1
-      } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
-          alignment =  "-"+alignment
-         x -= 1
       } else if(matrix(x)(y) == matrix(x)(y-1)+indelScore) {//insertion 
          alignment = "+"+alignment
          y -= 1
+      } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
+          alignment =  "-"+alignment
+         x -= 1
       }
     }
     if(genX.charAt(x) == genY.charAt(y))
@@ -104,24 +122,21 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   /**
    * Method to build the backtrace after the computation of the matrix and provide a print in stdout of the alignment
    */
-  def buildBacktrace() : Unit = {
-    val listCoordMax : scala.collection.mutable.ListBuffer[(Int, Int)] = new scala.collection.mutable.ListBuffer[(Int, Int)]()
+  private def backtrace() : Unit = {
     var max = -borderX
+    var coord : (Int, Int) = (0,0)
     for (x <- 0 until borderX)
-      if (matrix(x)(borderY-1) > max)
+      if (matrix(x)(borderY-1) > max) {
         max = matrix(x)(borderY-1) 
-    
-    for (x <- 0 until borderX)
-      if (matrix(x)(borderY-1) == max) 
-        listCoordMax += ( (x, (borderY-1)) )
-    println("Max Score : " + max)
-    listCoordMax.foreach { c =>
+        coord = (x,borderY-1)
+      }
+       println("Max Score : " + max)
        var indexGen : Int = 0
        var indexRead : Int = 0
        var genomeAligned : String = ""
        var readAligned : String = ""
        var alignment : String = ""
-       val alignmentVal : String = backtrace( (c._1,c._2) )
+       val alignmentVal : String = buildBacktrace( coord )
        alignmentVal.foreach { a =>
         a match {
         case '|' => {
@@ -155,7 +170,12 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
       println(genomeAligned)
       println(alignment)
       println(readAligned)
-    }
+      println("numbers of match : " + (alignment.filter { x => x == '|' }).length())
+  }
+  
+  def align() : Unit = {
+    compute
+    backtrace
   }
    
   /**

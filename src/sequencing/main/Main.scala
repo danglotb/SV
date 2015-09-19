@@ -4,16 +4,12 @@ import sequencing.util._
 import sequencing.alignment._
 
 object Main extends App {
-
-  val gen1 = new Parser("input/read").parseAll()
-  val gen2 = new Parser("input/genome").parseAll()
   
-//  val gen1 = new Parser("input/NC_002549.fna").parseAll()
-//  val gen2 = new Parser("input/NC_006432.fna").parseAll()
+  val options = AlignmentOption.options(Map(), args.toList)
   
-  val s: AlignmentSeq = new AlignmentSeq(5, -4, -10, gen2, gen1, 1)
-  s.computeMatrix
-  println(s)
-  s.buildBacktrace()
+  val s = new AlignmentSeq(5, -4, -10, 
+      options.getOrElse("gen1", "input/genome").toString 
+      , options.getOrElse("gen2", "input/read").toString , options.getOrElse("k", 3).toString.toInt)
   
+  s.align
 }
