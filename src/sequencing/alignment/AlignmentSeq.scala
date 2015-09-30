@@ -69,17 +69,18 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
    */
   def compute : Unit = {
     for (x <- 0 until borderX)
-      matrix(x)(0) = -x
+      matrix(x)(0) = x * indelScore
     for (y <- 0 until borderY)
-      matrix(0)(y) = -y
+      matrix(0)(y) = y * indelScore
     matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) matchScore else mismatchScore
-    for (y <- 1 until borderY)
-      for (x <- Math.max(1, Math.abs(y-k)) until borderX) {
+    for (y <- 1 until borderY) {
+      for (x <- 1 until borderX ) {
           if (genX.charAt(x) == genY.charAt(y))
             matrix(x)(y) = matrix(x-1)(y-1)+matchScore
           else 
             matrix(x)(y) = Math.max(matrix(x)(y-1)+indelScore, Math.max(matrix(x-1)(y-1)+mismatchScore,matrix(x-1)(y)+indelScore))
       }
+    }
   }
   
   /**
@@ -88,7 +89,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   private def buildBacktrace(start : (Int, Int)) : String = {
     var x : Int = start._1
     var y : Int = start._2
-    var alignment : String = "-" * (borderX - start._1 -1)
+    var alignment : String = "-" * (borderX - start._1 - 1)
     while (x != 0 || y != 0) {
      if (x == 0) {//insertion 
          alignment = "+"+alignment
@@ -108,7 +109,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
          alignment = "+"+alignment
          y -= 1
       } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
-          alignment =  "-"+alignment
+         alignment =  "-"+alignment
          x -= 1
       }
     }
@@ -125,13 +126,14 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   private def backtrace() : Unit = {
     var max = -borderX
     var coord : (Int, Int) = (0,0)
-    for (x <- 0 until borderX)
-      if (matrix(x)(borderY-1) > max) {
-        max = matrix(x)(borderY-1) 
+    for (x <- borderY-1-k until borderX) {
+      if ( ( matrix(x)(borderY-1) + ((borderX - x - 1) * indelScore) ) > max) {
+        max = matrix(x)(borderY-1) + ((borderX - x - 1) * indelScore)
         coord = (x,borderY-1)
       }
-       println("Max Score : " + max)
-       var indexGen : Int = 0
+    }
+    println("Max Score : " + max)
+    var indexGen : Int = 0
        var indexRead : Int = 0
        var genomeAligned : String = ""
        var readAligned : String = ""
@@ -175,6 +177,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   
   def align() : Unit = {
     compute
+//    print(this)
     backtrace
   }
    
