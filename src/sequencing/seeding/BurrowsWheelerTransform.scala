@@ -51,8 +51,9 @@ class BurrowsWheelerTransform(ref:String){
       
     }
    
-//   println(rank('c', 13))
-//   print(this)
+    val l : List[(Int, Int)] = List((1,1))
+    
+   println(search("ggga", "ggga".length-1, 1, 1, ref.length()-1, l))
    
   }
   
@@ -71,15 +72,40 @@ class BurrowsWheelerTransform(ref:String){
   }
   
   def rank(t : Char, i : Int) : Int = {
-    var current = i-1
+    var current = i
     var rank = 0
-    while(current % 16 != 0) {
+    while(current % SAMPLE != 0) {
       if (burrowsWheeler(current) == t)
         rank += 1
       current -= 1
     }
-    rank+ranks(current)(cToI(t))  
+    rank+ranks(current%SAMPLE)(cToI(t))  
   }
+
+  def search(w : String, i : Int, z : Int, k : Int, l : Int, indexes : List[(Int, Int)]) : List[(Int, Int)] = {
+    if (z < 0)
+     return indexes
+    if (i < 0) 
+     return ((k,l) :: indexes) 
+   
+    search(w, i-1, z-1, k, l, indexes)
+    val letters : List[Char] = List('A', 'C', 'G', 'T')
+    for (i <- 0 until letters.length) {
+      val nk : Int = rMin(letters(i), k)
+      val nl : Int = rMax(letters(i), l)
+      if (k <= l) {
+         search(w, i-1, z-1, nk, nl, indexes)
+        if (w.charAt(i) == letters(i))
+         search(w, i-1, z, nk, nl, indexes)
+        else
+         search(w, i-1, z-1, k, l, indexes)
+      }
+    }
+    indexes
+  }
+  
+  def rMin(t : Char, i : Int) : Int = c(cToI(t)) + rank(t, i-1) + 1
+  def rMax(t : Char, i : Int) : Int = c(cToI(t)) + rank(t, i)
   
 }
 
