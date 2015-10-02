@@ -88,7 +88,7 @@ class BurrowsWheelerTransform(ref: String) {
   }
   
   /**
-   * Function search of the pattern with z error
+   * Function search of the pattern with z error see BWA 
    */
     def search(w : String, i : Int, z : Int, k : Int, l : Int ) : ListBuffer[Int] = {
       if (z < 0)

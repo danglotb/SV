@@ -73,8 +73,8 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     for (y <- 0 until borderY)
       matrix(0)(y) = y * indelScore
     matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) matchScore else mismatchScore
-    for (y <- 1 until borderY) {
-      for (x <- 1 until borderX ) {
+    for (x <- 1 until borderX) {
+      for (y <- 1 until borderY) {
           if (genX.charAt(x) == genY.charAt(y))
             matrix(x)(y) = matrix(x-1)(y-1)+matchScore
           else 
@@ -86,39 +86,57 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   /**
    * build a string of the operations made to align
    */
-  private def buildBacktrace(start : (Int, Int)) : String = {
-    var x : Int = start._1
-    var y : Int = start._2
-    var alignment : String = "-" * (borderX - start._1 - 1)
-    while (x != 0 || y != 0) {
-     if (x == 0) {//insertion 
-         alignment = "+"+alignment
-         y -= 1
-     } else if (y == 0) {//deletion
-         alignment =  "-"+alignment
-         x -= 1
-     } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
-         alignment = "|"+alignment
-         y -= 1
-         x -= 1
-      } else if(matrix(x)(y) == matrix(x-1)(y-1)+mismatchScore) {//mismatch
-         alignment = " "+alignment
-         y -= 1
-         x -= 1
-      } else if(matrix(x)(y) == matrix(x)(y-1)+indelScore) {//insertion 
-         alignment = "+"+alignment
-         y -= 1
-      } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
-         alignment =  "-"+alignment
-         x -= 1
-      }
-    }
-    if(genX.charAt(x) == genY.charAt(y))
+  private def buildBacktraceStr(x : Int, y : Int,
+      alignment : String) : String = {
+    if (x == 0) {
+      if (y == 0) {
+        if(genX.charAt(x) == genY.charAt(y))
          return "|"+alignment//match
-    else
+        else
          return " "+alignment//mismatch
+      } else 
+         buildBacktraceStr(0 , y-1, "+"+alignment)
+      } else if (y == 0) {
+        buildBacktraceStr(x-1, 0, "-"+alignment)
+      } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
+        buildBacktraceStr(x-1,y-1, "|"+alignment)
+      } else if(matrix(x)(y) == matrix(x-1)(y-1)+mismatchScore) {//mismatch
+        buildBacktraceStr(x-1,y-1, " "+alignment)
+      } else if(matrix(x)(y) == matrix(x)(y-1)+indelScore) {//insertion 
+        buildBacktraceStr(x,y-1, "+"+alignment)
+      } else {//deletion
+        buildBacktraceStr(x-1,y, "-"+alignment)
+      }
   }
   
+  /**
+   * build 3 string from the backtrace string
+   */
+  private def buildAlignmentStr(backtrace : String, cursor : Int, strGen : String, indexGen : Int,
+      strAlign : String, strRead : String, indexRead : Int) : (String,String,String) = {
+    if (cursor >= backtrace.length())
+       (strGen,strAlign,strRead)
+    else {
+      backtrace.charAt(cursor) match {
+        case '|' => {
+            buildAlignmentStr(backtrace, cursor+1, (strGen+genX.charAt(indexGen)), indexGen+1,
+                (strAlign+"|"), (strRead+genY.charAt(indexRead)) , indexRead+1)
+          }
+          case ' ' => {
+             buildAlignmentStr(backtrace, cursor+1, (strGen+genX.charAt(indexGen)), indexGen+1,
+                (strAlign+" "), (strRead+genY.charAt(indexRead)) , indexRead+1)
+          }
+          case '-' => {
+             buildAlignmentStr(backtrace, cursor+1, (strGen+genX.charAt(indexGen)), indexGen+1,
+                (strAlign+" "), (strRead+"-") , indexRead)
+          }
+          case '+' => {
+            buildAlignmentStr(backtrace, cursor+1, (strGen+"+"), indexGen,
+                (strAlign+" "), (strRead+genY.charAt(indexRead)) , indexRead+1)
+          }
+      }
+    }
+  }  
   
   /**
    * Method to build the backtrace after the computation of the matrix and provide a print in stdout of the alignment
@@ -133,51 +151,18 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
       }
     }
     println("Max Score : " + max)
-    var indexGen : Int = 0
-       var indexRead : Int = 0
-       var genomeAligned : String = ""
-       var readAligned : String = ""
-       var alignment : String = ""
-       val alignmentVal : String = buildBacktrace( coord )
-       alignmentVal.foreach { a =>
-        a match {
-        case '|' => {
-          genomeAligned = genomeAligned + genX.charAt(indexGen)
-          readAligned = readAligned + genY.charAt(indexRead)
-          alignment = alignment + "|"
-          indexRead = indexRead + 1
-          indexGen = indexGen + 1
-        }
-        case ' ' => {
-          genomeAligned = genomeAligned + genX.charAt(indexGen)
-          readAligned = readAligned + genY.charAt(indexRead)
-          alignment = alignment + " "
-          indexRead = indexRead + 1
-          indexGen = indexGen + 1
-        }
-        case '-' => {
-          genomeAligned = genomeAligned + genX.charAt(indexGen)
-          readAligned = readAligned + "-"
-          alignment = alignment + " "
-          indexGen = indexGen + 1
-        }
-        case '+' => {
-          genomeAligned = genomeAligned + "+"
-          readAligned = readAligned + genY.charAt(indexRead)
-          alignment = alignment + " "
-          indexRead = indexRead + 1
-        }
-        }
-      }
-      println(genomeAligned)
-      println(alignment)
-      println(readAligned)
-      println("numbers of match : " + (alignment.filter { x => x == '|' }).length())
+    val alignmentVal : String = buildBacktraceStr( coord._1, coord._2,  "-" * (borderX - coord._1 - 1))
+    val alignmentStr = buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
+    println(alignmentStr._1)
+    println(alignmentStr._2)
+    println(alignmentStr._3)
+    println("numbers of match : " + (alignmentStr._2.filter { x => x == '|' }).length())
+    println("numbers of gaps : " + (alignmentStr._1.filter { x => x == '+'}.length() + alignmentStr._3.filter {x => x == '-'}.length))
   }
   
   def align() : Unit = {
     compute
-//    print(this)
+//  print(this)
     backtrace
   }
    
