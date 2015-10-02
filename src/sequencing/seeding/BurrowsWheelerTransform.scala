@@ -2,6 +2,8 @@ package sequencing.seeding
 
 import scala.collection.mutable.ListBuffer
 
+import sequencing.alignment._
+
 /**
  * @author danglot
  */
@@ -12,22 +14,22 @@ class BurrowsWheelerTransform(ref: String) {
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
   val c: Array[Int] = new Array[Int](5)
-  val ranks = new Array[Array[Int]]((ref.length() / SAMPLE) + 1)
+  val ranks = new Array[Array[Int]]( (ref.length() / SAMPLE) + 1)
 
   init()
 
   def cToI(l: Char): Int = {
     l.toUpper match {
-      case 'A' => 0
-      case 'C' => 1
-      case 'G' => 2
-      case 'T' => 3
-      case '$' => 4
+      case '$' => 0
+      case 'A' => 1
+      case 'C' => 2
+      case 'G' => 3
+      case 'T' => 4
     }
   }
 
   def init(): Unit = {
-
+    
     val tmpRank = new Array[Int](4)
     var currentLetter = '$'
     var cptSample = 0
@@ -36,18 +38,18 @@ class BurrowsWheelerTransform(ref: String) {
       ranks(i) = new Array[Int](4)
 
     for (i <- 0 until burrowsWheeler.length) {
-      burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else '$'
-
+      burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else '$'           
+      
       if (ref.charAt(suffixTable(i)) != currentLetter) {
         currentLetter = ref.charAt(suffixTable(i))
         c(cToI(currentLetter)) = i
       }
 
       if (burrowsWheeler(i) != '$') {
-        tmpRank(cToI(burrowsWheeler(i))) += 1
+        tmpRank(cToI(burrowsWheeler(i))-1) += 1
         if (i % SAMPLE == 0) {
           for (z <- 0 until 4)
-            ranks(cptSample)(z) = tmpRank(z)
+          ranks(cptSample)(z) = tmpRank(z)
           cptSample += 1
         }
       }
@@ -84,13 +86,13 @@ class BurrowsWheelerTransform(ref: String) {
         current -= 1
       }
     }
-    rank + ranks(current / SAMPLE)(cToI(t))
+    rank + ranks(current / SAMPLE)(cToI(t)-1)
   }
   
   /**
    * Function search of the pattern with z error see BWA 
    */
-    def search(w : String, i : Int, z : Int, k : Int, l : Int ) : ListBuffer[Int] = {
+    def search(w : String, i : Int, z : Int, k : Int, l : Int) : ListBuffer[Int] = {
       if (z < 0)
         return new ListBuffer[Int]()
       if (i < 0) {
@@ -99,17 +101,17 @@ class BurrowsWheelerTransform(ref: String) {
           ret += suffixTable(x)
         return ret
       }
-      val ret = search(w, i-1, z-1, k, l)
+      val ret = search(w, i-1, z-1, k, l)//indel
       val letters : List[Char] = List('a', 'c', 'g', 't')
       for (j <- 0 until letters.length) {
         val nk : Int = rMin(letters(j), k)
         val nl : Int = rMax(letters(j), l)
-        if (k <= l) {
-           ret ++= search(w, i, z-1, nk, nl)
+        if (nk <= nl) {
+           ret ++= search(w, i, z-1, nk, nl)//indel
           if (w.charAt(i) == letters(j))
-           ret ++= search(w, i-1, z, nk, nl)
+           ret ++= search(w, i-1, z, nk, nl)//match
           else
-           ret ++= search(w, i-1, z-1, nk, nl)
+           ret ++= search(w, i-1, z-1, nk, nl)//mismatch
         }
       }
       ret.distinct
@@ -121,5 +123,13 @@ class BurrowsWheelerTransform(ref: String) {
 }
 
 object Main extends App {
-  val b = new BurrowsWheelerTransform("tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga$")
+  val gen = "tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga"
+  val b = new BurrowsWheelerTransform(gen+"$")
+  val str = "gggcatgacagatcccga"
+  b.search(str.substring(0,4), 3, 0, 1, gen.length()-1).foreach { 
+    x =>
+      val s = new AlignmentSeq(5, -4, -10, gen, str, 1)
+      s.align()
+}
+
 }
