@@ -9,7 +9,7 @@ import sequencing.alignment._
  */
 class BurrowsWheelerTransform(ref: String) {
 
-  val SAMPLE: Int = 16
+  val SAMPLE: Int = 1
 
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
@@ -92,7 +92,7 @@ class BurrowsWheelerTransform(ref: String) {
       return new ListBuffer[Int]()
     if (i < 0) {
       val ret: ListBuffer[Int] = new ListBuffer[Int]()
-      for (x <- k until l + 1)
+      for (x <- k until l+1)
         ret += suffixTable(x)
       return ret
     }
@@ -123,8 +123,8 @@ class BurrowsWheelerTransform(ref: String) {
       }
       return ret
     }
-    val nk: Int = r(w(i), k-1) + 1
-    val nl: Int = r(w(i), l)
+    val nk : Int = r(w(i), k-1) + 1
+    val nl : Int = r(w(i), l)
     exactSearch(w, i-1, nk, nl)
   }
 
@@ -136,7 +136,7 @@ object Main extends App {
   val test = "tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga$"
   val b = new BurrowsWheelerTransform(test)
   val str = "ggg"
-  val s = b.exactSearch(str, str.length()-1, 1, test.length()-1)
+  val s = b.exactSearch(str, str.length()-1, 1, test.length()-2)
   s.foreach {x => println(test.substring(x))}
   
   
