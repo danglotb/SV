@@ -14,7 +14,7 @@ class BurrowsWheelerTransform(ref: String) {
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
   val c: Array[Int] = new Array[Int](5)
-  val ranks = new Array[Array[Int]]((ref.length() / SAMPLE) + 2)
+  val ranks = new Array[Array[Int]]((ref.length() / SAMPLE) + 1)
 
   init()
 
@@ -30,36 +30,36 @@ class BurrowsWheelerTransform(ref: String) {
 
   def init(): Unit = {
 
-    val tmpRank = new Array[Int](4)
+    val tmpRank = new Array[Int](5)
     var currentLetter = '$'
 
     for (i <- 0 until ranks.length)
-      ranks(i) = new Array[Int](4)
+      ranks(i) = new Array[Int](5)
 
     for (i <- 0 until burrowsWheeler.length) {
-      burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else '$'
+      burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else ref.charAt(ref.length()-1)
 
       if (ref.charAt(suffixTable(i)) != currentLetter) {
         currentLetter = ref.charAt(suffixTable(i))
         c(cToI(currentLetter)) = i
       }
 
-      if (burrowsWheeler(i) != '$') {
-        tmpRank(cToI(burrowsWheeler(i))) += 1
-        if (i % SAMPLE == 0) {
-          for (z <- 0 until 4)
+      if (i % SAMPLE == 0) {
+          for (z <- 0 until 5)
             ranks(i / SAMPLE)(z) = tmpRank(z)
-        }
       }
+      
+      tmpRank(cToI(burrowsWheeler(i))) += 1
+    
     }
 
-    for (z <- 0 until 4)
-      ranks(ranks.length - 1)(z) = tmpRank(z)
   }
 
   override def toString(): String = {
     var str = ""
     burrowsWheeler.foreach { x => str += x }
+    str += "\n"
+    suffixTable.foreach {x => str += x+" " }
     str += "\n"
     c.foreach { x => str += x + "\n" }
     ranks.foreach { x =>
@@ -73,20 +73,15 @@ class BurrowsWheelerTransform(ref: String) {
 
   /**
    * Function rank to determine how many t the BWT have before the i letter
-   * /!\ Something wrong with rank init at -1
    */
-  def rank(t: Char, i: Int): Int = {
-    var rank = 0
-    var current = i
-    if (i % SAMPLE != 0) {
-      current -= 1
-      while (current % SAMPLE != 0) {
-        if (burrowsWheeler(current).toUpper == t.toUpper)
-          rank += 1
-        current -= 1
-      }
-    }
-    rank + ranks(current / SAMPLE)(cToI(t))
+  def rank(t : Char, i : Int, rankOfT : Int) : Int = {
+    if (i % SAMPLE == 0)
+      rankOfT + ranks(i/SAMPLE)(cToI(t))
+    else
+      if (burrowsWheeler(i).toUpper == t.toUpper)
+        rank(t,i-1,rankOfT+1)
+      else
+        rank(t,i-1,rankOfT)
   }
 
   /**
@@ -104,8 +99,8 @@ class BurrowsWheelerTransform(ref: String) {
     val ret = search(w, i - 1, z - 1, k, l) //indel
     val letters: List[Char] = List('a', 'c', 'g', 't')
     for (j <- 0 until letters.length) {
-      val nk: Int = rMin(letters(j), k)
-      val nl: Int = rMax(letters(j), l)
+      val nk: Int = r(letters(j), k-1) + 1
+      val nl: Int = r(letters(j), l)
       if (nk <= nl) {
         ret ++= search(w, i, z - 1, nk, nl) //indel
         if (w.charAt(i) == letters(j))
@@ -124,30 +119,25 @@ class BurrowsWheelerTransform(ref: String) {
     if (i < 0) {
       val ret: ListBuffer[Int] = new ListBuffer[Int]()
       for (x <- k until l+1) {
-        print(x+":")
-        print(suffixTable(x)+":")
-        println(ref.substring(suffixTable(x)))
         ret += suffixTable(x)
       }
       return ret
     }
-    val nk: Int = rMin(w(i), k)
-    val nl: Int = rMax(w(i), l)
+    val nk: Int = r(w(i), k-1) + 1
+    val nl: Int = r(w(i), l)
     exactSearch(w, i-1, nk, nl)
   }
 
-  def rMin(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i - 1) + 1
-  def rMax(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i)
+  def r(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i, 0)
 
 }
 
 object Main extends App {
-  val gen = "tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga$"
-  val b = new BurrowsWheelerTransform(gen)
-//  println(b)
-  val str = "ggga"
-  val s = b.exactSearch(str, str.length()-1, 1, gen.length()-1)
-  s.foreach { x =>
-    println(gen.substring(x))
-  }
+  val test = "tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga$"
+  val b = new BurrowsWheelerTransform(test)
+  val str = "ggg"
+  val s = b.exactSearch(str, str.length()-1, 1, test.length()-1)
+  s.foreach {x => println(test.substring(x))}
+  
+  
 }
