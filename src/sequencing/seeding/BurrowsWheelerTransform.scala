@@ -9,7 +9,7 @@ import sequencing.alignment._
  */
 class BurrowsWheelerTransform(ref: String) {
 
-  val SAMPLE: Int = 1
+  val SAMPLE: Int = 16
 
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
@@ -36,20 +36,22 @@ class BurrowsWheelerTransform(ref: String) {
     for (i <- 0 until ranks.length)
       ranks(i) = new Array[Int](5)
 
-    for (i <- 0 until burrowsWheeler.length) {
+    for (i <- 0 until ref.length) {
       burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else ref.charAt(ref.length()-1)
 
       if (ref.charAt(suffixTable(i)) != currentLetter) {
         currentLetter = ref.charAt(suffixTable(i))
-        c(cToI(currentLetter)) = i
+        c(cToI(currentLetter)) = i - 1
       }
 
+      tmpRank(cToI(burrowsWheeler(i))) += 1
+      
       if (i % SAMPLE == 0) {
           for (z <- 0 until 5)
-            ranks(i / SAMPLE)(z) = tmpRank(z)
+            ranks(i/SAMPLE)(z) = tmpRank(z)
       }
       
-      tmpRank(cToI(burrowsWheeler(i))) += 1
+
     
     }
 
@@ -83,7 +85,7 @@ class BurrowsWheelerTransform(ref: String) {
       else
         rank(t,i-1,rankOfT)
   }
-
+  
   /**
    * Function search of the pattern with z error see BWA
    */
@@ -99,8 +101,8 @@ class BurrowsWheelerTransform(ref: String) {
     val ret = search(w, i - 1, z - 1, k, l) //indel
     val letters: List[Char] = List('a', 'c', 'g', 't')
     for (j <- 0 until letters.length) {
-      val nk: Int = r(letters(j), k-1) + 1
-      val nl: Int = r(letters(j), l)
+      val nk: Int = rank(letters(j), k-1, 0) + 1
+      val nl: Int = rank(letters(j), l, 0)
       if (nk <= nl) {
         ret ++= search(w, i, z - 1, nk, nl) //indel
         if (w.charAt(i) == letters(j))
@@ -118,26 +120,31 @@ class BurrowsWheelerTransform(ref: String) {
   def exactSearch(w: String, i: Int, k: Int, l: Int): ListBuffer[Int] = {
     if (i < 0) {
       val ret: ListBuffer[Int] = new ListBuffer[Int]()
-      for (x <- k until l+1) {
+      for (x <- k to l) {
         ret += suffixTable(x)
       }
       return ret
     }
-    val nk : Int = r(w(i), k-1) + 1
-    val nl : Int = r(w(i), l)
+    val nk : Int = rMin(w(i), k)
+    val nl : Int = rMax(w(i), l)
     exactSearch(w, i-1, nk, nl)
   }
 
-  def r(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i, 0)
+  def rMin(t: Char, i: Int): Int = c(cToI(t)) + rank(t,i-1,0)+1
+  def rMax(t: Char, i: Int): Int = c(cToI(t)) + rank(t,i,0)
 
 }
 
 object Main extends App {
   val test = "tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga$"
   val b = new BurrowsWheelerTransform(test)
-  val str = "ggg"
-  val s = b.exactSearch(str, str.length()-1, 1, test.length()-2)
-  s.foreach {x => println(test.substring(x))}
+  val str = "gacca"
   
+  for (i <- 0 until b.suffixTable.length) {
+    println(i+":"+b.suffixTable(i)+":"+test.substring(b.suffixTable(i)))    
+  }
+  
+  val s = b.exactSearch(str, str.length()-1, 1, test.length()-1)
+  s.foreach {x => println(test.substring(x))}
   
 }
