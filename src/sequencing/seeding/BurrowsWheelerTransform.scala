@@ -90,7 +90,6 @@ class BurrowsWheelerTransform(ref: String) {
       return new ListBuffer[Int]()
     if (i < 0) {
       val ret: ListBuffer[Int] = new ListBuffer[Int]()
-      println(k+";"+l)
       for (x <- k to l)
         ret += suffixTable(x)
       return ret
@@ -133,14 +132,30 @@ class BurrowsWheelerTransform(ref: String) {
 }
 
 object Main extends App {
-  val test = "tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga$"
-  val b = new BurrowsWheelerTransform(test)
-  val str = "gacca"
+  val sourceRef = scala.io.Source.fromFile("input/genome")
+  val ref = sourceRef.mkString+"$"
+  sourceRef close
+  val b = new BurrowsWheelerTransform(ref)
   
-  for (i <- 0 until b.suffixTable.length) {
-    println(i+":"+b.suffixTable(i)+":"+test.substring(b.suffixTable(i)))    
+  val sourceRead = scala.io.Source.fromFile("input/read")
+  val read = sourceRead.mkString
+  sourceRead close
+  
+  println(ref)
+  println(read)
+    
+  val sizeOfSeed = 8
+  
+  var indexSeed = new ListBuffer[Int]()
+  
+  for (i <- 0 until (read.length / sizeOfSeed)) {
+    val seed = read.substring(i*sizeOfSeed, (i+1)*sizeOfSeed)
+    println("seed "+i+" : " + seed)
+    indexSeed = b.search(seed, seed.length()-1, 0, 1, ref.length()-1)
+    indexSeed.foreach {s =>
+      println(s+":"+ref.substring(s, s+seed.length))
+    }
   }
   
-  val s = b.search(str, str.length()-1, 1, 1, test.length()-1)
-  s.foreach {x => println(test.substring(x))}
+  
 }

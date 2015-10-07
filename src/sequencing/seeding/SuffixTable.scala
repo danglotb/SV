@@ -12,8 +12,6 @@ object SuffixTable {
       suffixTable(i) = ref.substring(i)
       suffixIndex(i) = i
     }
-    val ret = suffixIndex.sortBy { x => suffixTable(x) }
-//    ret.foreach {x => println(suffixTable(x))}
-    ret
+    suffixIndex.sortBy { x => suffixTable(x) }
   }
 }
