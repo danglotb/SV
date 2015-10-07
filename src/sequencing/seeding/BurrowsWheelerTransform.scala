@@ -50,11 +50,7 @@ class BurrowsWheelerTransform(ref: String) {
           for (z <- 0 until 5)
             ranks(i/SAMPLE)(z) = tmpRank(z)
       }
-      
-
-    
     }
-
   }
 
   override def toString(): String = {
@@ -94,15 +90,16 @@ class BurrowsWheelerTransform(ref: String) {
       return new ListBuffer[Int]()
     if (i < 0) {
       val ret: ListBuffer[Int] = new ListBuffer[Int]()
-      for (x <- k until l+1)
+      println(k+";"+l)
+      for (x <- k to l)
         ret += suffixTable(x)
       return ret
     }
     val ret = search(w, i - 1, z - 1, k, l) //indel
     val letters: List[Char] = List('a', 'c', 'g', 't')
     for (j <- 0 until letters.length) {
-      val nk: Int = rank(letters(j), k-1, 0) + 1
-      val nl: Int = rank(letters(j), l, 0)
+      val nk : Int = rMin(letters(j), k)
+      val nl : Int = rMax(letters(j), l) 
       if (nk <= nl) {
         ret ++= search(w, i, z - 1, nk, nl) //indel
         if (w.charAt(i) == letters(j))
@@ -144,7 +141,6 @@ object Main extends App {
     println(i+":"+b.suffixTable(i)+":"+test.substring(b.suffixTable(i)))    
   }
   
-  val s = b.exactSearch(str, str.length()-1, 1, test.length()-1)
+  val s = b.search(str, str.length()-1, 1, 1, test.length()-1)
   s.foreach {x => println(test.substring(x))}
-  
 }
