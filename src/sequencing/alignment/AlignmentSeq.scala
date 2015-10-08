@@ -47,23 +47,13 @@ object AlignmentOption {
  * Class to align to sequence
  */
 class AlignmentSeq(matchScore : Int, mismatchScore : Int,
-    indelScore : Int, genX : String, genY : String, k : Int) {
+    indelScore : Int, genX : String, genY : String, k : Int, borderX : Int, borderY : Int) {
   
-  /**
-   * border of the x 
-   */
-  private val borderX : Int = genX.length()
-  
-  /**
-   * border of the y
-   */
-  private val borderY : Int = genY.length()
-
   /**
    * matrix of scores
    */
   private val matrix = Array ofDim[Int](borderX, borderY)
-
+  
   /**
    * Compute the matrix
    */
@@ -95,17 +85,17 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
         else
          return " "+alignment//mismatch
       } else 
-         buildBacktraceStr(0 , y-1, "+"+alignment)
+        buildBacktraceStr(0 , y-1, "+"+alignment)
       } else if (y == 0) {
         buildBacktraceStr(x-1, 0, "-"+alignment)
-      } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
-        buildBacktraceStr(x-1,y-1, "|"+alignment)
-      } else if(matrix(x)(y) == matrix(x-1)(y-1)+mismatchScore) {//mismatch
-        buildBacktraceStr(x-1,y-1, " "+alignment)
       } else if(matrix(x)(y) == matrix(x)(y-1)+indelScore) {//insertion 
         buildBacktraceStr(x,y-1, "+"+alignment)
-      } else {//deletion
+      } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
         buildBacktraceStr(x-1,y, "-"+alignment)
+      } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
+        buildBacktraceStr(x-1,y-1, "|"+alignment)
+      } else {
+        buildBacktraceStr(x-1,y-1, " "+alignment)
       }
   }
   
@@ -118,7 +108,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
        (strGen,strAlign,strRead)
     else {
       backtrace.charAt(cursor) match {
-        case '|' => {
+          case '|' => {
             buildAlignmentStr(backtrace, cursor+1, (strGen+genX.charAt(indexGen)), indexGen+1,
                 (strAlign+"|"), (strRead+genY.charAt(indexRead)) , indexRead+1)
           }
@@ -136,22 +126,26 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
           }
       }
     }
-  }  
+  }
+  
+  private def getMax(max : Int, x : Int, xMax : Int) : (Int, Int) = {
+    if (x == borderX)
+      return (max, xMax)
+    if (matrix(x)(borderY-1) > max)
+      getMax(matrix(x)(borderY-1), x+1, x)
+    else
+      getMax(max, x+1, xMax)
+  }
   
   /**
    * Method to build the backtrace after the computation of the matrix and provide a print in stdout of the alignment
    */
   private def backtrace() : Unit = {
-    var max = -borderX
-    var coord : (Int, Int) = (0,0)
-    for (x <- borderY-1-k until borderX) {
-      if ( ( matrix(x)(borderY-1) + ((borderX - x - 1) * indelScore) ) > max) {
-        max = matrix(x)(borderY-1) + ((borderX - x - 1) * indelScore)
-        coord = (x,borderY-1)
-      }
+    val max = getMax(Int.MinValue, 0 , 0)
+    val alignmentVal : String = buildBacktraceStr( max._2, borderY-1,  "")
+    if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' || x.isSpaceChar)}.length)*100)/borderX > 10) {
+      return 
     }
-    println("Max Score : " + max)
-    val alignmentVal : String = buildBacktraceStr( coord._1, coord._2,  "-" * (borderX - coord._1 - 1))
     val alignmentStr = buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
     println(alignmentStr._1)
     println(alignmentStr._2)
@@ -162,7 +156,6 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   
   def align() : Unit = {
     compute
-//  print(this)
     backtrace
   }
    

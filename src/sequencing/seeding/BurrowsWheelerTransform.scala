@@ -7,9 +7,7 @@ import sequencing.alignment._
 /**
  * @author danglot
  */
-class BurrowsWheelerTransform(ref: String) {
-
-  val SAMPLE: Int = 16
+class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
 
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
@@ -18,6 +16,9 @@ class BurrowsWheelerTransform(ref: String) {
 
   init()
 
+  /**
+   * Convert a Char to his index in ranks
+   */
   def cToI(l: Char): Int = {
     l.toUpper match {
       case '$' => 4
@@ -75,11 +76,12 @@ class BurrowsWheelerTransform(ref: String) {
   def rank(t : Char, i : Int, rankOfT : Int) : Int = {
     if (i % SAMPLE == 0)
       rankOfT + ranks(i/SAMPLE)(cToI(t))
-    else
+    else {
       if (burrowsWheeler(i).toUpper == t.toUpper)
         rank(t,i-1,rankOfT+1)
       else
         rank(t,i-1,rankOfT)
+    }
   }
   
   /**
@@ -98,10 +100,10 @@ class BurrowsWheelerTransform(ref: String) {
     val letters: List[Char] = List('a', 'c', 'g', 't')
     for (j <- 0 until letters.length) {
       val nk : Int = rMin(letters(j), k)
-      val nl : Int = rMax(letters(j), l) 
+      val nl : Int = rMax(letters(j), l)
       if (nk <= nl) {
         ret ++= search(w, i, z - 1, nk, nl) //indel
-        if (w.charAt(i) == letters(j))
+        if (w.charAt(i).toUpper == letters(j).toUpper)
           ret ++= search(w, i - 1, z, nk, nl) //match
         else
           ret ++= search(w, i - 1, z - 1, nk, nl) //mismatch
@@ -132,30 +134,32 @@ class BurrowsWheelerTransform(ref: String) {
 }
 
 object Main extends App {
-  val sourceRef = scala.io.Source.fromFile("input/genome")
-  val ref = sourceRef.mkString+"$"
+  val sourceRef = scala.io.Source.fromFile("input/gen")
+  val ref = (sourceRef.mkString+"$").filter { x => x !=  '\n'}
   sourceRef close
-  val b = new BurrowsWheelerTransform(ref)
   
   val sourceRead = scala.io.Source.fromFile("input/read")
-  val read = sourceRead.mkString
+  val read = (sourceRead.mkString+"$").filter { x => x !=  '\n'}
   sourceRead close
-  
-  println(ref)
-  println(read)
     
-  val sizeOfSeed = 8
+  val b = new BurrowsWheelerTransform(ref, 16)
   
-  var indexSeed = new ListBuffer[Int]()
+  val sizeOfSeed = 4
   
-  for (i <- 0 until (read.length / sizeOfSeed)) {
+  for (i <- 0 until  (read.length / sizeOfSeed)) {
     val seed = read.substring(i*sizeOfSeed, (i+1)*sizeOfSeed)
     println("seed "+i+" : " + seed)
-    indexSeed = b.search(seed, seed.length()-1, 0, 1, ref.length()-1)
-    indexSeed.foreach {s =>
-      println(s+":"+ref.substring(s, s+seed.length))
+    val indexSeed = b.search(seed, seed.length()-1, 1, 1, ref.length()-1)
+    indexSeed.foreach { s =>
+      val endRead = read.substring(i*sizeOfSeed).length
+      val endRef = ref.substring(s).length
+      val aligner = new AlignmentSeq(5,-4,-10, ref.substring(s), read.substring(i*sizeOfSeed), 0 , endRef , endRead)
+      aligner align
     }
   }
   
+  if (read.length % sizeOfSeed != 0) {
+    val seed = read.substring(read.length-(read.length % sizeOfSeed))
+  }
   
 }
