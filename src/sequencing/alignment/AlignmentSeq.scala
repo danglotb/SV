@@ -159,7 +159,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
    backtrace
   }
   
-  def printAlign(alignmentStr : (String, String, String)) = {
+  def printAlign(alignmentStr : (String, String, String)) = { 
     println(alignmentStr._1)
     println(alignmentStr._2)
     println(alignmentStr._3)
