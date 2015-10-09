@@ -7,7 +7,7 @@ import sequencing.alignment._
 /**
  * @author danglot
  */
-class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
+class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
 
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
@@ -38,7 +38,7 @@ class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
       ranks(i) = new Array[Int](5)
 
     for (i <- 0 until ref.length) {
-      burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else ref.charAt(ref.length()-1)
+      burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else ref.charAt(ref.length() - 1)
 
       if (ref.charAt(suffixTable(i)) != currentLetter) {
         currentLetter = ref.charAt(suffixTable(i))
@@ -46,10 +46,10 @@ class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
       }
 
       tmpRank(cToI(burrowsWheeler(i))) += 1
-      
+
       if (i % SAMPLE == 0) {
-          for (z <- 0 until 5)
-            ranks(i/SAMPLE)(z) = tmpRank(z)
+        for (z <- 0 until 5)
+          ranks(i / SAMPLE)(z) = tmpRank(z)
       }
     }
   }
@@ -58,7 +58,7 @@ class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
     var str = ""
     burrowsWheeler.foreach { x => str += x }
     str += "\n"
-    suffixTable.foreach {x => str += x+" " }
+    suffixTable.foreach { x => str += x + " " }
     str += "\n"
     c.foreach { x => str += x + "\n" }
     ranks.foreach { x =>
@@ -73,17 +73,17 @@ class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
   /**
    * Function rank to determine how many t the BWT have before the i letter
    */
-  def rank(t : Char, i : Int, rankOfT : Int) : Int = {
+  def rank(t: Char, i: Int, rankOfT: Int): Int = {
     if (i % SAMPLE == 0)
-      rankOfT + ranks(i/SAMPLE)(cToI(t))
+      rankOfT + ranks(i / SAMPLE)(cToI(t))
     else {
       if (burrowsWheeler(i).toUpper == t.toUpper)
-        rank(t,i-1,rankOfT+1)
+        rank(t, i - 1, rankOfT + 1)
       else
-        rank(t,i-1,rankOfT)
+        rank(t, i - 1, rankOfT)
     }
   }
-  
+
   /**
    * Function search of the pattern with z error see BWA
    */
@@ -99,8 +99,8 @@ class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
     val ret = search(w, i - 1, z - 1, k, l) //indel
     val letters: List[Char] = List('a', 'c', 'g', 't')
     for (j <- 0 until letters.length) {
-      val nk : Int = rMin(letters(j), k)
-      val nl : Int = rMax(letters(j), l)
+      val nk: Int = rMin(letters(j), k)
+      val nl: Int = rMax(letters(j), l)
       if (nk <= nl) {
         ret ++= search(w, i, z - 1, nk, nl) //indel
         if (w.charAt(i).toUpper == letters(j).toUpper)
@@ -123,46 +123,50 @@ class BurrowsWheelerTransform(ref: String, SAMPLE : Int) {
       }
       return ret
     }
-    val nk : Int = rMin(w(i), k)
-    val nl : Int = rMax(w(i), l)
-    exactSearch(w, i-1, nk, nl)
+    val nk: Int = rMin(w(i), k)
+    val nl: Int = rMax(w(i), l)
+    exactSearch(w, i - 1, nk, nl)
   }
 
-  def rMin(t: Char, i: Int): Int = c(cToI(t)) + rank(t,i-1,0)+1
-  def rMax(t: Char, i: Int): Int = c(cToI(t)) + rank(t,i,0)
+  def rMin(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i - 1, 0) + 1
+  def rMax(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i, 0)
 
 }
 
 object Main extends App {
-  val sourceRef = scala.io.Source.fromFile("input/gen")
-  val ref = (sourceRef.mkString+"$").filter { x => x !=  '\n'}
+  val sourceRef = scala.io.Source.fromFile("input/shortGen")
+  val ref = (sourceRef.mkString + "$").filter { x => x != '\n' }.toUpperCase
   sourceRef close
-  
-  val sourceRead = scala.io.Source.fromFile("input/read")
-  val read = (sourceRead.mkString+"$").filter { x => x !=  '\n'}
-  sourceRead close
-    
+
+  val reads = sequencing.util.ParserFASTQ.parse("input/shortRead.fastq")
+
   val b = new BurrowsWheelerTransform(ref, 16)
+
+  val sizeOfSeed = 2
   
-  val sizeOfSeed = 4
-  
+  reads.foreach { read => 
   for (i <- 0 until (read.length / sizeOfSeed)) {
-    val seed = read.substring(i*sizeOfSeed, (i+1)*sizeOfSeed)
+    val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
     println(seed)
-    val indexSeed = b.search(seed, seed.length()-1, 0, 1, ref.length()-1)
+    val indexSeed = b.search(seed, seed.length() - 1, 1, 1, ref.length() - 1)
     indexSeed.foreach { s =>
-    val endRef = math.min(s+read.substring(i*sizeOfSeed).length(), ref.length)
-    val alignerRight = new AlignmentSeq(5,-4,-10, ref.substring(s, endRef), read.substring(i*sizeOfSeed), 0, 10)
-    val alignmentRight = (alignerRight align)
-    if (! alignmentRight._1.equals(""))
-      alignerRight.printAlign(alignmentRight)
-    val refLeft = ref.substring(math.max(0, s+sizeOfSeed-(read.length-read.substring(i*sizeOfSeed).length)), s+sizeOfSeed).reverse
-//      val alignerLeft = new AlignmentSeq(5,-4,-10, "", "", 0 , 0, 0)
+      val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
+      val alignerRight = new AlignmentSeq(5, -4, -10, ref.substring(s, endRef), read.substring(i * sizeOfSeed), 0, 10)
+      val alignmentRight = (alignerRight align)
+      if ( ! (alignmentRight._1.equals("")))
+        alignerRight.printAlign(alignmentRight)
+      val refLeft = ref.substring(math.max(0, s + sizeOfSeed - (read.length - read.substring(i * sizeOfSeed).length)), s + sizeOfSeed).reverse
+      val readLeft = read.substring(0, (i+1)*sizeOfSeed).reverse
+      val alignerLeft = new AlignmentSeq(5, -4, -10, refLeft, readLeft, 0, 10)
+      val alignmentLeft = (alignerLeft align)
+      if ( ! (alignmentLeft._1.equals("")))
+        alignerLeft.printAlign(alignmentLeft)
     }
   }
-  
-//  if (read.length % sizeOfSeed != 0) {
-//    val seed = read.substring(read.length-(read.length % sizeOfSeed))
-//  }
-  
+  }
+
+  //  if (read.length % sizeOfSeed != 0) {
+  //    val seed = read.substring(read.length-(read.length % sizeOfSeed))
+  //  }
+
 }
