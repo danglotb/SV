@@ -74,7 +74,7 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
    * Function rank to determine how many t the BWT have before the i letter
    */
   def rank(t: Char, i: Int, rankOfT: Int): Int = {
-    if (i % SAMPLE == 0) 
+    if (i % SAMPLE == 0)
       return rankOfT + ranks(i / SAMPLE)(cToI(t))
     else {
       if (burrowsWheeler(i).toUpper == t.toUpper)
@@ -135,33 +135,41 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
 
 object Main extends App {
   val ref = new sequencing.util.Parser("input/NC_002549.fna").parseAll
-  
+
   val reads = sequencing.util.ParserFASTQ.parse("input/SRR1930021.fastq")
 
-  val b = new BurrowsWheelerTransform(ref+"$", 32)
+  val b = new BurrowsWheelerTransform(ref + "$", 32)
 
   val sizeOfSeed = 25
-  
-  reads.foreach { read => 
-  for (i <- 0 until (read.length / sizeOfSeed)) {
-    val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
-    println("#" + i + " " + seed)
-    val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
-    indexSeed.foreach { s =>
-      val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
-      val alignerRight = new AlignmentSeq(5, -4, -10, ref.substring(s, endRef), read.substring(i * sizeOfSeed), 0, 10)
-      val alignmentRight = (alignerRight align)
-      if ( ! (alignmentRight._1.equals("")))
-        alignerRight.printAlign(alignmentRight)
-      val refLeft = ref.substring(math.max(0, s - (read.length - read.substring(i * sizeOfSeed).length)), s + sizeOfSeed).reverse
-      val readLeft = read.substring(0, (i+1)*sizeOfSeed).reverse
-      val alignerLeft = new AlignmentSeq(5, -4, -10, refLeft, readLeft, 0, 10)
-      val alignmentLeft = (alignerLeft align)
-      if ( ! (alignmentLeft._1.equals("")))
-        alignerLeft.printAlign(alignmentLeft)
+
+  val arrayReadAligned = new Array[Boolean](reads.length)
+
+  reads.foreach { read =>
+    for (i <- 0 until (read.length / sizeOfSeed)) {
+      val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
+//      println("#" + i + " " + seed)
+      val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
+      indexSeed.foreach { s =>
+        val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
+        val alignerRight = new AlignmentSeq(5, -4, -10, ref.substring(s, endRef), read.substring(i * sizeOfSeed), 0, 5)
+        val alignmentRight = (alignerRight align)
+        if (!(alignmentRight._1.equals(""))) {
+//          alignerRight.printAlign(alignmentRight)
+          arrayReadAligned(i) = true
+        }
+        val refLeft = ref.substring(math.max(0, s - (read.length - read.substring(i * sizeOfSeed).length)), s + sizeOfSeed).reverse
+        val readLeft = read.substring(0, (i + 1) * sizeOfSeed).reverse
+        val alignerLeft = new AlignmentSeq(5, -4, -10, refLeft, readLeft, 0, 5)
+        val alignmentLeft = (alignerLeft align)
+        if (!(alignmentLeft._1.equals(""))) {
+//          alignerLeft.printAlign(alignmentLeft)
+          arrayReadAligned(i) = true
+        }
+      }
     }
   }
-  }
+  
+  println(arrayReadAligned.toList.filter { x => x == true }.length + " / " + reads.length)
 
   //  if (read.length % sizeOfSeed != 0) {
   //    val seed = read.substring(read.length-(read.length % sizeOfSeed))
