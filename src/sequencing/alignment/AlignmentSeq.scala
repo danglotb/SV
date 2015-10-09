@@ -47,7 +47,11 @@ object AlignmentOption {
  * Class to align to sequence
  */
 class AlignmentSeq(matchScore : Int, mismatchScore : Int,
-    indelScore : Int, genX : String, genY : String, k : Int, borderX : Int, borderY : Int) {
+    indelScore : Int, genX : String, genY : String, k : Int, nbError : Int) {
+  
+  private val borderX : Int = genX.length
+  
+  private val borderY : Int = genY.length
   
   /**
    * matrix of scores
@@ -131,22 +135,31 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   private def getMax(max : Int, x : Int, xMax : Int) : (Int, Int) = {
     if (x == borderX)
       return (max, xMax)
-    if (matrix(x)(borderY-1) > max)
+    if (matrix(x)(borderY-1) > max) {
       getMax(matrix(x)(borderY-1), x+1, x)
-    else
+    }  else
       getMax(max, x+1, xMax)
   }
   
   /**
    * Method to build the backtrace after the computation of the matrix and provide a print in stdout of the alignment
    */
-  private def backtrace() : Unit = {
+  def backtrace : (String, String, String) = {
     val max = getMax(Int.MinValue, 0 , 0)
     val alignmentVal : String = buildBacktraceStr( max._2, borderY-1,  "")
-    if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' || x.isSpaceChar)}.length)*100)/borderX > 10) {
-      return 
+//  if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' || x.isSpaceChar)}.length)*100)/borderX > nbError) {
+    if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' )}.length)*100)/borderX > nbError) {
+      return ("", "", "")
     }
-    val alignmentStr = buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
+    buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
+  }
+  
+  def align : (String, String, String) = {
+   compute
+   backtrace
+  }
+  
+  def printAlign(alignmentStr : (String, String, String)) = {
     println(alignmentStr._1)
     println(alignmentStr._2)
     println(alignmentStr._3)
@@ -154,11 +167,6 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     println("numbers of gaps : " + (alignmentStr._1.filter { x => x == '+'}.length() + alignmentStr._3.filter {x => x == '-'}.length))
   }
   
-  def align() : Unit = {
-    compute
-    backtrace
-  }
-   
   /**
    * print on the stdout the matrix of score
    */

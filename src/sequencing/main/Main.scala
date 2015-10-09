@@ -11,7 +11,9 @@ object Main extends App {
   
   val read = new Parser(options.getOrElse("gen2", "input/r")).parseAll
   
-  val s = new AlignmentSeq(5, -4, -10, gen ,read , options.getOrElse("k", 3).toString.toInt, gen.length, read.length)
+  val s = new AlignmentSeq(5, -4, -10, gen ,read , options.getOrElse("k", 3).toString.toInt, 40)
   
-  s.align
+  val z = s.align
+  
+  s.printAlign(z)
 }

@@ -146,20 +146,23 @@ object Main extends App {
   
   val sizeOfSeed = 4
   
-  for (i <- 0 until  (read.length / sizeOfSeed)) {
+  for (i <- 0 until (read.length / sizeOfSeed)) {
     val seed = read.substring(i*sizeOfSeed, (i+1)*sizeOfSeed)
-    println("seed "+i+" : " + seed)
-    val indexSeed = b.search(seed, seed.length()-1, 1, 1, ref.length()-1)
+    println(seed)
+    val indexSeed = b.search(seed, seed.length()-1, 0, 1, ref.length()-1)
     indexSeed.foreach { s =>
-      val endRead = read.substring(i*sizeOfSeed).length
-      val endRef = ref.substring(s).length
-      val aligner = new AlignmentSeq(5,-4,-10, ref.substring(s), read.substring(i*sizeOfSeed), 0 , endRef , endRead)
-      aligner align
+    val endRef = math.min(s+read.substring(i*sizeOfSeed).length(), ref.length)
+    val alignerRight = new AlignmentSeq(5,-4,-10, ref.substring(s, endRef), read.substring(i*sizeOfSeed), 0, 10)
+    val alignmentRight = (alignerRight align)
+    if (! alignmentRight._1.equals(""))
+      alignerRight.printAlign(alignmentRight)
+    val refLeft = ref.substring(math.max(0, s+sizeOfSeed-(read.length-read.substring(i*sizeOfSeed).length)), s+sizeOfSeed).reverse
+//      val alignerLeft = new AlignmentSeq(5,-4,-10, "", "", 0 , 0, 0)
     }
   }
   
-  if (read.length % sizeOfSeed != 0) {
-    val seed = read.substring(read.length-(read.length % sizeOfSeed))
-  }
+//  if (read.length % sizeOfSeed != 0) {
+//    val seed = read.substring(read.length-(read.length % sizeOfSeed))
+//  }
   
 }
