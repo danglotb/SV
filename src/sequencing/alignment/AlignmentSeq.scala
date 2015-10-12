@@ -43,10 +43,34 @@ object AlignmentOption {
    }
 }
 
+object AlignerUtil {
+   def mergeAlign(alignmentLeft : (String, String, String),
+      alignmentRight : (String, String, String), sizeOfSeed : Int) : (String, String, String) = {
+    (alignmentLeft._1+alignmentRight._1.substring(sizeOfSeed),alignmentLeft._2+alignmentRight._2.substring(sizeOfSeed),
+    alignmentLeft._3+alignmentRight._3.substring(sizeOfSeed))
+  }
+  
+  def printAlign(alignmentStr : (String, String, String)) = {
+    val sizeOfChunk = 100
+    for (i <- 0 until ((alignmentStr._1.length) / sizeOfChunk)) {
+      println(alignmentStr._1.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
+      println(alignmentStr._2.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
+      println(alignmentStr._3.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
+      println()
+    }
+    println(alignmentStr._1.substring(alignmentStr._1.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
+    println(alignmentStr._2.substring(alignmentStr._2.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
+    println(alignmentStr._3.substring(alignmentStr._3.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
+    println()
+    println("numbers of match : " + (alignmentStr._2.filter { x => x == '|' }).length())
+    println("numbers of gaps : " + (alignmentStr._1.filter { x => x == '+'}.length() + alignmentStr._3.filter {x => x == '-'}.length))
+  }
+}
+
 /**
  * Class to align to sequence
  */
-class AlignmentSeq(matchScore : Int, mismatchScore : Int,
+class Aligner(matchScore : Int, mismatchScore : Int,
     indelScore : Int, genX : String, genY : String, k : Int, PercentError : Int) {
   
   private val borderX : Int = genX.length
@@ -157,22 +181,6 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
   def align : (String, String, String) = {
    compute
    backtrace
-  }
-  
-  def printAlign(alignmentStr : (String, String, String)) = {
-    val sizeOfChunk = 80
-    for (i <- 0 until ((alignmentStr._1.length) / sizeOfChunk)) {
-      println(alignmentStr._1.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
-      println(alignmentStr._2.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
-      println(alignmentStr._3.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
-      println()
-    }
-    println(alignmentStr._1.substring(alignmentStr._1.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
-    println(alignmentStr._2.substring(alignmentStr._2.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
-    println(alignmentStr._3.substring(alignmentStr._3.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
-    println()
-    println("numbers of match : " + (alignmentStr._2.filter { x => x == '|' }).length())
-    println("numbers of gaps : " + (alignmentStr._1.filter { x => x == '+'}.length() + alignmentStr._3.filter {x => x == '-'}.length))
   }
   
   /**
