@@ -6,17 +6,18 @@ import sequencing.seeding._
 
 object Main extends App {
   
-  val ref = new sequencing.util.Parser("input/NC_002549.fna").parseAll
+  val ref = new sequencing.util.Parser("input/shortGen").parseAll.toUpperCase()
 
-  val reads = sequencing.util.ParserFASTQ.parse("input/SRR1930021.fastq")
+  val reads = sequencing.util.ParserFASTQ.parse("input/shortRead.fastq")
 
   val b = new BurrowsWheelerTransform(ref + "$", 32)
 
-  val sizeOfSeed = 25
+  val sizeOfSeed = 2
 
   val arrayReadAligned = new Array[Boolean](reads.length)
 
-  reads.foreach { read =>
+  reads.foreach { r =>
+    val read = r.toUpperCase
     for (i <- 0 until (read.length / sizeOfSeed)) {
       val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
       println("#" + i + "\t" + seed)
@@ -36,7 +37,6 @@ object Main extends App {
         if ( !(alignmentLeft._1.equals("")) && !(alignmentRight._1.equals("") )) {
           val totalAlignment = AlignerUtil.mergeAlign(alignmentLeft,alignmentRight,sizeOfSeed)
           AlignerUtil.printAlign(totalAlignment)
-          println(totalAlignment._2.length + " == " + read.length())
           arrayReadAligned(reads.indexOf(read)) = true
         }
         
