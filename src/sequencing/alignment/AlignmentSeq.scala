@@ -47,7 +47,7 @@ object AlignmentOption {
  * Class to align to sequence
  */
 class AlignmentSeq(matchScore : Int, mismatchScore : Int,
-    indelScore : Int, genX : String, genY : String, k : Int, nbError : Int) {
+    indelScore : Int, genX : String, genY : String, k : Int, PercentError : Int) {
   
   private val borderX : Int = genX.length
   
@@ -148,7 +148,7 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
     val max = getMax(Int.MinValue, 0 , 0)
     val alignmentVal : String = buildBacktraceStr( max._2, borderY-1,  "")
 //  if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' || x.isSpaceChar)}.length)*100)/borderX > nbError) {
-    if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' )}.length)*100)/borderX > nbError) {
+    if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' )}.length)*100)/borderX > PercentError) {
       return ("", "", "")
     }
     buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
@@ -159,10 +159,18 @@ class AlignmentSeq(matchScore : Int, mismatchScore : Int,
    backtrace
   }
   
-  def printAlign(alignmentStr : (String, String, String)) = { 
-    println(alignmentStr._1)
-    println(alignmentStr._2)
-    println(alignmentStr._3)
+  def printAlign(alignmentStr : (String, String, String)) = {
+    val sizeOfChunk = 80
+    for (i <- 0 until ((alignmentStr._1.length) / sizeOfChunk)) {
+      println(alignmentStr._1.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
+      println(alignmentStr._2.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
+      println(alignmentStr._3.substring(i*sizeOfChunk, (i+1)*sizeOfChunk))
+      println()
+    }
+    println(alignmentStr._1.substring(alignmentStr._1.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
+    println(alignmentStr._2.substring(alignmentStr._2.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
+    println(alignmentStr._3.substring(alignmentStr._3.length-(alignmentStr._1.length%sizeOfChunk), alignmentStr._1.length))
+    println()
     println("numbers of match : " + (alignmentStr._2.filter { x => x == '|' }).length())
     println("numbers of gaps : " + (alignmentStr._1.filter { x => x == '+'}.length() + alignmentStr._3.filter {x => x == '-'}.length))
   }

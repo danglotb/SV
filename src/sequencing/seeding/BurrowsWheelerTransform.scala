@@ -144,29 +144,32 @@ object Main extends App {
 
   val arrayReadAligned = new Array[Boolean](reads.length)
 
-  reads.foreach { read =>
+//  reads.foreach { read =>
+  val read = reads(0)
+  println(read)
     for (i <- 0 until (read.length / sizeOfSeed)) {
       val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
-//      println("#" + i + " " + seed)
-      val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
+      println("#" + i + "\t" + seed)
+      val indexSeed = b.search(seed, seed.length() - 1, 1, 1, ref.length() - 1)
       indexSeed.foreach { s =>
         val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
-        val alignerRight = new AlignmentSeq(5, -4, -10, ref.substring(s, endRef), read.substring(i * sizeOfSeed), 0, 5)
+        val alignerRight = new AlignmentSeq(5, -4, -10, ref.substring(s, endRef),
+            read.substring(i * sizeOfSeed), 0, 40)
         val alignmentRight = (alignerRight align)
         if (!(alignmentRight._1.equals(""))) {
-//          alignerRight.printAlign(alignmentRight)
+          alignerRight.printAlign(alignmentRight)
           arrayReadAligned(i) = true
         }
         val refLeft = ref.substring(math.max(0, s - (read.length - read.substring(i * sizeOfSeed).length)), s + sizeOfSeed).reverse
         val readLeft = read.substring(0, (i + 1) * sizeOfSeed).reverse
-        val alignerLeft = new AlignmentSeq(5, -4, -10, refLeft, readLeft, 0, 5)
+        val alignerLeft = new AlignmentSeq(5, -4, -10, refLeft, readLeft, 0, 40)
         val alignmentLeft = (alignerLeft align)
         if (!(alignmentLeft._1.equals(""))) {
-//          alignerLeft.printAlign(alignmentLeft)
+          alignerLeft.printAlign(alignmentLeft)
           arrayReadAligned(i) = true
         }
       }
-    }
+//    }
   }
   
   println(arrayReadAligned.toList.filter { x => x == true }.length + " / " + reads.length)
