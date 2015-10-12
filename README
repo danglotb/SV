@@ -1,0 +1,12 @@
+Benjamin DANGLOT - Logiciel d'alignement de lecture de genome.
+
+
+Choix d'implémentations : 
+
+	- BurrowsWheeler Tranforms pour l'indexation (ainsi que la table des suffixes)
+	- Echantillonage pour la fonction Rank
+	- Backtracking pour la recherche de seed (gestion d'érreurs)
+	- Extension des deux cotés avec merge des alignements à la fin.
+	
+Résultats : 
+
