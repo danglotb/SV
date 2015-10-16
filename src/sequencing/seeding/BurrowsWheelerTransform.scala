@@ -54,22 +54,6 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
     }
   }
 
-  override def toString(): String = {
-    var str = ""
-    burrowsWheeler.foreach { x => str += x }
-    str += "\n"
-    suffixTable.foreach { x => str += x + " " }
-    str += "\n"
-    c.foreach { x => str += x + "\n" }
-    ranks.foreach { x =>
-      x.foreach { r =>
-        str += r + "\t"
-      }
-      str += "\n"
-    }
-    str
-  }
-
   /**
    * Function rank to determine how many t the BWT have before the i letter
    */

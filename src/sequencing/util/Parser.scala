@@ -2,28 +2,9 @@ package sequencing.util;
 
 object Parser {
 
-  def IntToC(i: Int): Char = {
-    i match {
-      case 0 => 'A'
-      case 1 => 'C'
-      case 2 => 'G'
-      case 3 => 'T'
-    }
-  }
-
-  def replaceNtoNt(seq: Array[Char], cursor: Int): String = {
-    if (cursor == seq.length)
-      return new String(seq)
-    else if (seq(cursor) == 'N') {
-      val r = new java.util.Random
-      seq(cursor) = IntToC(r.nextInt(4))
-    }
-    replaceNtoNt(seq, cursor + 1)
-  }
-
   def read4(it: Iterator[String]): String = {
     it.next
-    val sequence = replaceNtoNt((it.next).toCharArray, 0)
+    val sequence = Util.replaceNtoNt((it.next).toCharArray, 0)
     it.next
     it.next
     return sequence
@@ -51,7 +32,7 @@ object Parser {
 
     iterator next
 
-    new String(replaceNtoNt((iterator mkString).toCharArray, 0))
+    new String(Util.replaceNtoNt((iterator mkString).toCharArray, 0))
   }
 
 }

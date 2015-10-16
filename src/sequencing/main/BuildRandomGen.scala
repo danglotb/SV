@@ -16,7 +16,7 @@ object BuildRandomGen extends App {
   val r = new java.util.Random()
   
   while (i != number) {
-   writer.write(sequencing.util.Parser.IntToC(r.nextInt(4)))
+   writer.write(sequencing.util.Util.IntToC(r.nextInt(4)))
    i += 1
    if (i % 1000 == 0)
      writer.write("\n")
