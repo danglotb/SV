@@ -37,7 +37,7 @@ object AlignerUtil {
  * Class to align to sequence
  */
 class Aligner(matchScore : Int, mismatchScore : Int,
-    indelScore : Int, genX : String, genY : String, k : Int, PercentError : Int) {
+    indelScore : Int, genX : String, genY : String, k : Int) {
   
   private val borderX : Int = genX.length
   
@@ -137,10 +137,6 @@ class Aligner(matchScore : Int, mismatchScore : Int,
   def backtrace : (String, String, String) = {
     val max = getMax(Int.MinValue, 0 , 0)
     val alignmentVal : String = buildBacktraceStr( max._2, borderY-1,  "")
-//  if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' || x.isSpaceChar)}.length)*100)/borderX > nbError) {
-    if ( ((alignmentVal.filter{ x => (x == '-' || x == '+' )}.length)*100)/borderX > PercentError) {
-      return ("", "", "")
-    }
     buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
   }
   

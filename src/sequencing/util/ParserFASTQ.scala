@@ -1,6 +1,18 @@
 package sequencing.util
 
+import sequencing.main.BuildRandomGen
+
+object Main extends App {
+  
+  println(ParserFASTQ.replaceNtoNt("NNNNNAGCT"))
+  
+}
+
 object ParserFASTQ {
+  
+  def replaceNtoNt(seq : String) : String = {
+    seq
+  }
   
   def read4(it : Iterator[String]) : String = {
     it.next
