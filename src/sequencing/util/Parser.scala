@@ -1,48 +1,57 @@
 package sequencing.util;
 
-class Parser(pathname : Any, sizeOfChunk : Int = 5) {
+object Parser {
 
-  if (pathname == null) {
-     usage()
-     System.exit(1)
-  }
-  
-  val source = scala.io.Source.fromFile(pathname.toString)
-  
-  val iterator : Iterator[String] = source getLines
-  
-  if (pathname.toString.endsWith(".fasta") || pathname.toString.endsWith(".fna"))
-   (iterator next)
-  
-  def usage() : Unit = {
-     print("This applications need at least this two options : \n")
-     print("\t-g <pathToGenomeFile> to specify the path the genome file.\n")
-     print("\t-r <pathToReadFile> to specify the path the read file.\n")
-   }
-  
-  /**
-   * return a part of the file
-   */
-  def parse() : String = {
-    var str : String = ""
-    for (i <- 0 until sizeOfChunk) {
-      if (iterator hasNext)
-        str += (iterator next)
+  def IntToC(i: Int): Char = {
+    i match {
+      case 0 => 'A'
+      case 1 => 'C'
+      case 2 => 'G'
+      case 3 => 'T'
     }
-    return str
   }
-  
-  /**
-   * use in case of read
-   */
-  def parseAll() : String = {
-    var str : String = ""
-    while(iterator hasNext) {
-      str += (iterator next)
+
+  def replaceNtoNt(seq: Array[Char], cursor: Int): String = {
+    if (cursor == seq.length)
+      return new String(seq)
+    else if (seq(cursor) == 'N') {
+      val r = new java.util.Random
+      seq(cursor) = IntToC(r.nextInt(4))
     }
-    return str
+    replaceNtoNt(seq, cursor + 1)
   }
-  
-  def hasNext() : Boolean = iterator hasNext
-  
+
+  def read4(it: Iterator[String]): String = {
+    it.next
+    val sequence = replaceNtoNt((it.next).toCharArray, 0)
+    it.next
+    it.next
+    return sequence
+  }
+
+  def parseFASTQ(pathname: String): scala.collection.mutable.ListBuffer[String] = {
+    val source = scala.io.Source.fromFile(pathname)
+
+    val iterator = source getLines
+
+    val listOfSequencies = new scala.collection.mutable.ListBuffer[String]()
+
+    while (iterator hasNext)
+      listOfSequencies += read4(iterator)
+
+    return listOfSequencies
+
+  }
+
+  def parse(pathname: String): String = {
+
+    val source = scala.io.Source.fromFile(pathname)
+
+    val iterator = source getLines
+
+    iterator next
+
+    new String(replaceNtoNt((iterator mkString).toCharArray, 0))
+  }
+
 }

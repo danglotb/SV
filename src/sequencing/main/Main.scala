@@ -8,9 +8,9 @@ object Main extends App {
   
   val options = OptionsAlignment.options(Map(), args.toList)
   
-  val ref = new sequencing.util.Parser("input/shortGen").parseAll.toUpperCase()
+  val ref = Parser.parse(options.getOrElse("ref", "input/shortGen").toString)
 
-  val reads = sequencing.util.ParserFASTQ.parse("input/shortRead.fastq")
+  val reads = Parser.parseFASTQ(options.getOrElse("read", "input/shortRead.fastq").toString)
 
   val b = new BurrowsWheelerTransform(ref + "$", 32)
 
