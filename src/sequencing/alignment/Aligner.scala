@@ -57,9 +57,9 @@ class Aligner(matchScore : Int, mismatchScore : Int,
     for (y <- 0 until borderY)
       matrix(0)(y) = y * indelScore
     matrix(0)(0) = if(this.genX.charAt(0) == genY.charAt(0)) matchScore else mismatchScore
-    for (x <- 1 until borderX) {
-      for (y <- 1 until borderY) {
-          if (genX.charAt(x) == genY.charAt(y))
+    for (y <- 1 until borderY) {
+      for (x <- Math.max(1, y-k) until Math.min(borderX-(k-y),borderX)) {
+        if (genX.charAt(x) == genY.charAt(y))
             matrix(x)(y) = matrix(x-1)(y-1)+matchScore
           else 
             matrix(x)(y) = Math.max(matrix(x)(y-1)+indelScore, Math.max(matrix(x-1)(y-1)+mismatchScore,matrix(x-1)(y)+indelScore))
@@ -142,6 +142,7 @@ class Aligner(matchScore : Int, mismatchScore : Int,
   
   def align : (String, String, String) = {
    compute
+   println(this)
    backtrace
   }
   
