@@ -16,7 +16,8 @@ object Main extends App {
 
   val sizeOfSeed = 2
 
-  val ratioError = 0.5
+  //zzzzz
+  val ratioError = options.getOrElse("ratio", 0.5).toString().toFloat
 
   val arrayReadAligned = new Array[Boolean](reads.length)
 
