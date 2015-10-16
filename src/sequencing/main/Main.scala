@@ -9,10 +9,10 @@ object Main extends App {
   val options = OptionsAlignment.options(Map(), args.toList)
   
   val ref = Parser.parse(options.getOrElse("ref", "input/shortGen").toString)
-
+  
   val reads = Parser.parseFASTQ(options.getOrElse("read", "input/shortRead.fastq").toString)
 
-  val b = new BurrowsWheelerTransform(ref + "$", 32)
+  val b = new BurrowsWheelerTransform(ref + "$", 8)
 
   val sizeOfSeed = 2
 

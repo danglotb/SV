@@ -29,10 +29,11 @@ object Parser {
     val source = scala.io.Source.fromFile(pathname)
 
     val iterator = source getLines
+    
+    if (pathname.endsWith("fna") || pathname.endsWith("fa"))
+      iterator next
 
-    iterator next
-
-    new String(Util.replaceNtoNt((iterator mkString).toCharArray, 0))
+    new String(Util.replaceNtoNt((iterator mkString).toCharArray, 0)).toUpperCase()
   }
 
 }
