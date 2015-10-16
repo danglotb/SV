@@ -6,6 +6,8 @@ import sequencing.seeding._
 
 object Main extends App {
   
+  val options = OptionsAlignment.options(Map(), args.toList)
+  
   val ref = new sequencing.util.Parser("input/shortGen").parseAll.toUpperCase()
 
   val reads = sequencing.util.ParserFASTQ.parse("input/shortRead.fastq")
