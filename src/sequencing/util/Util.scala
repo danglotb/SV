@@ -2,6 +2,16 @@ package sequencing.util
 
 object Util {
   
+  def cToI(l : Char): Int = {
+    l.toUpper match {
+      case '$' => 4
+      case 'A' => 0
+      case 'C' => 1
+      case 'G' => 2
+      case 'T' => 3
+    }
+  }
+  
   def IntToC(i: Int): Char = {
     i match {
       case 0 => 'A'

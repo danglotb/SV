@@ -2,6 +2,7 @@ package sequencing.seeding
 
 import scala.collection.mutable.ListBuffer
 
+import sequencing.util.Util
 import sequencing.alignment._
 
 /**
@@ -15,11 +16,8 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
   val ranks = new Array[Array[Int]]((ref.length() / SAMPLE) + 1)
 
   init()
-
-  /**
-   * Convert a Char to his index in ranks
-   */
-  def cToI(l: Char): Int = {
+  
+   def cToI(l : Char): Int = {
     l.toUpper match {
       case '$' => 4
       case 'A' => 0
