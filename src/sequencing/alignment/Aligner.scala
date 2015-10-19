@@ -139,7 +139,6 @@ class Aligner(matchScore : Int, mismatchScore : Int,
   
   def align : (String, String, String) = {
    compute
-   println(this)
    backtrace
   }
   

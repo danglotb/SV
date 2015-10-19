@@ -9,6 +9,6 @@ object SuffixTable {
     val suffixIndex = new Array[Int](ref.length)
     for (i <- 0 until ref.length)
       suffixIndex(i) = i
-    suffixIndex.sortBy { x => ref.substring(x) }
+    suffixIndex.sortBy { x =>  ref.substring(x) }
   }
 }

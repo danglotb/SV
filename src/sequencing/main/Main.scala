@@ -16,15 +16,14 @@ object Main extends App {
 
   val sizeOfSeed = 2
 
-  //zzzzz
   val ratioError = options.getOrElse("ratio", 0.5).toString().toFloat
 
   val arrayReadAligned = new Array[Boolean](reads.length)
-
+  
   reads.foreach { r =>
 
     val read = r.toUpperCase
-    for (i <- 0 until (read.length / sizeOfSeed)) {
+    for (i <- 0 until (read.length / sizeOfSeed) ) {
       val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
       println("#" + i + "\t" + seed)
       val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
