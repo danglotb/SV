@@ -1,5 +1,7 @@
 package sequencing.util;
 
+import sequencing.util._
+
 class Parser(pathname : Any, sizeOfChunk : Int = 5) {
 
   if (pathname == null) {
@@ -11,9 +13,9 @@ class Parser(pathname : Any, sizeOfChunk : Int = 5) {
   
   val iterator : Iterator[String] = source getLines
   
-  if (pathname.toString.endsWith(".fasta") || pathname.toString.endsWith(".fna"))
+  if (pathname.toString.endsWith(".fasta") || pathname.toString.endsWith(".fna") || pathname.toString.endsWith(".fa"))
    (iterator next)
-  
+   
   def usage() : Unit = {
      print("This applications need at least this two options : \n")
      print("\t-g <pathToGenomeFile> to specify the path the genome file.\n")
@@ -23,13 +25,17 @@ class Parser(pathname : Any, sizeOfChunk : Int = 5) {
   /**
    * return a part of the file
    */
+//  def parse() : String = {
+//    var str : String = ""
+//    for (i <- 0 until sizeOfChunk) {
+//      if (iterator hasNext)
+//        str += (iterator next)
+//    }
+//    return str
+//  }
+  
   def parse() : String = {
-    var str : String = ""
-    for (i <- 0 until sizeOfChunk) {
-      if (iterator hasNext)
-        str += (iterator next)
-    }
-    return str
+    return ParserFASTQ.replaceNtoNt( (iterator mkString).toCharArray , 0)
   }
   
   /**
@@ -38,7 +44,7 @@ class Parser(pathname : Any, sizeOfChunk : Int = 5) {
   def parseAll() : String = {
     var str : String = ""
     while(iterator hasNext) {
-      str += (iterator next)
+      str += (ParserFASTQ.replaceNtoNt((iterator next).toCharArray,0)).toUpperCase
     }
     return str
   }

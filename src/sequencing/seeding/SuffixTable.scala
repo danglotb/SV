@@ -6,12 +6,9 @@ import scala.collection.mutable.ListBuffer
  */
 object SuffixTable {
   def buildSuffixTable(ref: String): Array[Int] = {
-    val suffixTable = new Array[String](ref.length)
     val suffixIndex = new Array[Int](ref.length)
-    for (i <- 0 until ref.length) {
-      suffixTable(i) = ref.substring(i)
+    for (i <- 0 until ref.length)
       suffixIndex(i) = i
-    }
-    suffixIndex.sortBy { x => suffixTable(x) }
+    suffixIndex.sortBy { x => ref.substring(x) }
   }
 }

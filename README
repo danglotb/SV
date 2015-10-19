@@ -8,5 +8,20 @@ Choix d'implémentations :
 	- Backtracking pour la recherche de seed (gestion d'érreurs)
 	- Extension des deux cotés avec merge des alignements à la fin.
 	
+	- Pour ce qui est de la selection des alignements, j'ai tenté plusieurs choses :
+		- compter le nombre d'erreurs (indel/mismatch) et y autoriser un certain nombre dans l'alignement.(10% par exemple)
+		- pondérer les erreurs avec leurs scores lors de l'alignement.
+	
 Résultats : 
 
+	Le résultats de l'alignement n'est pas déterministe et je ne sais pas pourquoi. :3
+
+	Alignement sur les 3389 reads sur le genome d'ébola (NC_002549.fna)
+		- graine exactes de taille 25
+		- graine sans chevauchement
+		- temps : 6.29 secs
+		- 2795 / 3389 read alignés ( environ 82%)
+		- consomation mémoires : 0 LOL
+		
+		/usr/bin/time -f "\ttime %e\n\tmemory %k" /home/m2mocad/danglot/Téléchargements/scala-2.11.1/bin/scala -J-Xms200M -J-Xmx1800M -cp bin sequencing.main.Main
+		

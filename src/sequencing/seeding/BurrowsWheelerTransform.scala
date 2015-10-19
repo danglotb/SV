@@ -10,10 +10,12 @@ import sequencing.alignment._
 class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
 
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
+  println("Compute Suffix Table...")
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
   val c: Array[Int] = new Array[Int](5)
   val ranks = new Array[Array[Int]]((ref.length() / SAMPLE) + 1)
 
+  println("Initialisation BWT...")
   init()
 
   /**

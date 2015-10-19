@@ -6,43 +6,6 @@ package sequencing.alignment
  * Class for the alignment of sequences
  */
 
-/**
- * Option for Alignment
- */
-object AlignmentOption {
-  
-  type Options = Map[String, Any]
-
-  /**
-   * method to parse and build a map of the options
-   */
-  def options(opt: Options, args: List[String]): Options = {
-    if (args.isEmpty) return opt
-    args match {
-      case "-m" :: score :: tail => options(opt++Map("match" -> score), tail)
-      case "-mm" :: score :: tail => options(opt++Map("mismatch" -> score), tail)
-      case "-i" :: score :: tail => options(opt++Map("indel" -> score), tail)
-      case "-k" :: k :: tail => options(opt++Map("k" -> k), tail)
-      case "-f" :: gen1 :: gen2 :: tail => options( (opt++Map("gen1" -> gen1))++Map("gen2" -> gen2), tail)
-      case "-h" :: tail => usage() ; opt
-      case _ => usage() ; opt
-     }
-   }
-
-   /**
-    * print in stdout available option
-    */
-   def usage() : Unit = {
-     print("Options availables : \n")
-     print("\t-m <IntValue> to specify the score of a match(5 if not)\n")
-     print("\t-mm <IntValue> to specify the score of a mismatch(-4 if not)\n")
-     print("\t-i <IntValue> to specify the score of a indel(-10 if not, deletion/insertion)\n")
-     print("\t-k <IntValue> to specify the numbers of errors(3 if not)\n")
-     print("\t-file <pathToFile> <pathToFile> to specify files of gen you align.\n")
-     System.exit(1)
-   }
-}
-
 object AlignerUtil {
    def mergeAlign(alignmentLeft : (String, String, String),
       alignmentRight : (String, String, String), sizeOfSeed : Int) : (String, String, String) = {

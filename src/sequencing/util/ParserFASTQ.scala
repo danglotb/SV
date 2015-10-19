@@ -2,21 +2,24 @@ package sequencing.util
 
 import sequencing.main.BuildRandomGen
 
-object Main extends App {
-  
-  println(ParserFASTQ.replaceNtoNt("NNNNNAGCT"))
-  
-}
-
 object ParserFASTQ {
   
-  def replaceNtoNt(seq : String) : String = {
-    seq
+  def replaceNtoNt(seq : Array[Char], cursor : Int) : String = {
+    if (cursor == seq.length)
+      new String(seq)
+    else if (seq(cursor) == 'N') {
+      val r = new java.util.Random
+      val nextChar = BuildRandomGen.IntToC(r.nextInt(4))
+      seq(cursor) = nextChar.charAt(0)
+      replaceNtoNt( seq, cursor + 1)
+    } else
+      replaceNtoNt(seq, cursor + 1)
   }
+  
   
   def read4(it : Iterator[String]) : String = {
     it.next
-    val sequence = it.next
+    val sequence = replaceNtoNt((it.next).toCharArray(),0)
     it.next
     it.next
     return sequence
