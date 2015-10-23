@@ -23,5 +23,5 @@ Résultats :
 		- 2795 / 3389 read alignés ( environ 82%)
 		- consomation mémoires : 0 LOL
 		
-		/usr/bin/time -f "\ttime %e\n\tmemory %k" /home/m2mocad/danglot/Téléchargements/scala-2.11.1/bin/scala -J-Xms200M -J-Xmx1800M -cp bin sequencing.main.Main
+		/usr/bin/time -v /home/m2mocad/danglot/Téléchargements/scala-2.11.1/bin/scala -J-Xms2G -J-Xmx2G -cp bin sequencing.main.Main -f input/Homo_sapiens.GRCh38.dna.chromosome.21.fa input/DRR000547.20K.fastq 
 		

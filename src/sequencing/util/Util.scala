@@ -21,4 +21,11 @@ object Util {
     replaceNtoNt(seq, cursor + 1)
   }
 
+  def toTuple(tuple : Any) : (Int,Int,Int) = {
+    tuple match {
+      case (a : Int,b: Int,c: Int) => (a,b,c)
+      case _ => (5,-4,-10)
+    }
+  }
+  
 }

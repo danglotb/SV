@@ -33,8 +33,9 @@ object AlignerUtil {
 /**
  * Class to align to sequence
  */
-class Aligner(matchScore : Int, mismatchScore : Int,
-    indelScore : Int, genX : String, genY : String, k : Int) {
+class Aligner(score : (Int,Int,Int), genX : String, genY : String, k : Int) {
+  
+  private val (matchScore, mismatchScore, indelScore) = score
   
   private val borderX : Int = genX.length
   
@@ -139,7 +140,6 @@ class Aligner(matchScore : Int, mismatchScore : Int,
   
   def align : (String, String, String) = {
    compute
-   println(this)
    backtrace
   }
   
