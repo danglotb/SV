@@ -11,13 +11,14 @@ import sequencing.alignment._
 class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
 
   val burrowsWheeler: Array[Char] = new Array[Char](ref.length())
-  println("Compute Suffix Table...")
-  
+  print("Compute Suffix Table... ")
+  val time = System.currentTimeMillis()
   val suffixTable: Array[Int] = SuffixTable.buildSuffixTable(ref)
+  println(System.currentTimeMillis()-time + " ms")
   val c: Array[Int] = new Array[Int](5)
   val ranks = new Array[Array[Int]]((ref.length() / SAMPLE) + 1)
 
-  println("Initialisation BWT...")
+  print("Initialisation BWT... ")
   init()
   
    def charToInt(l : Char): Int = {
@@ -38,6 +39,8 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
     for (i <- 0 until ranks.length)
       ranks(i) = new Array[Int](5)
 
+    val time = System.currentTimeMillis()
+      
     for (i <- 0 until ref.length) {
       burrowsWheeler(i) = if ((suffixTable(i) - 1) >= 0) ref.charAt((suffixTable(i) - 1)) else ref.charAt(ref.length() - 1)
 
@@ -53,6 +56,9 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
           ranks(i / SAMPLE)(z) = tmpRank(z)
       }
     }
+    
+    println(System.currentTimeMillis() - time + " ms")
+    
   }
 
   /**

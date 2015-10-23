@@ -8,20 +8,6 @@ object OptionsAlignment {
       case _ => (5,-4,-10)
     }
   }
-  
-  def toInt(int : Any) : Int = {
-    int match {
-      case (a : Int) => a
-      case _ => 25
-    }
-  }
-  
-  def toFloat(float : Any) : Float = {
-    float match {
-      case (a : Float) => a
-      case _ => 0.5.toFloat
-    }
-  }
 
   type Options = Map[String, Any]
 
@@ -38,6 +24,7 @@ object OptionsAlignment {
         case "-f" :: ref :: read :: tail => options((opt ++ Map("ref" -> ref)) ++ Map("read" -> read), tail)
         case "-r" :: ratio :: tail       => options(opt ++ Map("ratio" -> ratio), tail)
         case "-sseed" :: sseed :: tail   => options(opt ++ Map("sizeOfSeed" -> sseed), tail)
+        case "-p" :: tail                => options(opt ++ Map("print" -> true), tail)
         case "-h" :: tail                => usage(); opt
         case _                           => usage(); opt
       }

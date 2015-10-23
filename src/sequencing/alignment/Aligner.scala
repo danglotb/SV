@@ -6,13 +6,23 @@ package sequencing.alignment
  * Class for the alignment of sequences
  */
 
+/**
+ * Object providing util function for alignment
+ */
 object AlignerUtil {
+  
+  /**
+   * Will merge two alignment : Tuple(String,String,String) computed by an aligner in one 
+   */
    def mergeAlign(alignmentLeft : (String, String, String),
       alignmentRight : (String, String, String), sizeOfSeed : Int) : (String, String, String) = {
     (alignmentLeft._1+alignmentRight._1.substring(sizeOfSeed),alignmentLeft._2+alignmentRight._2.substring(sizeOfSeed),
     alignmentLeft._3+alignmentRight._3.substring(sizeOfSeed))
   }
    
+   /**
+    * Compute number of error in an alignment
+    */
  def computeRatio(totalAlignment : (String, String, String), indelScore: Int, mismatchScore : Int) : Float = {
    val ratioIndel = ((totalAlignment._1.filter { x => x == '+' || x == '-' }.length +
       totalAlignment._2.filter { x => x == '+' || x == '-' }.length).toFloat) * (indelScore.toFloat)
@@ -21,6 +31,9 @@ object AlignerUtil {
    (ratioIndel + ratioMM)
  }
   
+ /**
+  * Print alignment
+  */
   def printAlign(alignmentStr : (String, String, String)) = {
     val sizeOfChunk = 100
     for (i <- 0 until ((alignmentStr._1.length) / sizeOfChunk)) {
@@ -44,6 +57,9 @@ object AlignerUtil {
  */
 class Aligner(score : (Int,Int,Int), genX : String, genY : String, k : Int) {
   
+  /**
+   * score 
+   */
   private val (matchScore, mismatchScore, indelScore) = score
   
   private val borderX : Int = genX.length
@@ -129,6 +145,9 @@ class Aligner(score : (Int,Int,Int), genX : String, genY : String, k : Int) {
     }
   }
   
+  /**
+   * return the max in the matrix
+   */
   private def getMax(max : Int, x : Int, xMax : Int) : (Int, Int) = {
     if (x == borderX)
       return (max, xMax)
@@ -147,23 +166,12 @@ class Aligner(score : (Int,Int,Int), genX : String, genY : String, k : Int) {
     buildAlignmentStr(alignmentVal, 0, "", 0, "", "", 0)
   }
   
+  /**
+   * method to run the alignment, provide a Tuple3(String,String,String)
+   */
   def align : (String, String, String) = {
    compute
    backtrace
-  }
-  
-  /**
-   * print on the stdout the matrix of score
-   */
-  override def toString() : String = {
-    var str : String = ""
-    for (y <- 0 until genY.length()) {
-      for (x <- 0 until borderX) {
-        str += "\t" + matrix(x)(y)
-      }
-      str += "\n"
-      }
-    str
   }
 }
 
