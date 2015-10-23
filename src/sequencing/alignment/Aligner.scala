@@ -12,6 +12,14 @@ object AlignerUtil {
     (alignmentLeft._1+alignmentRight._1.substring(sizeOfSeed),alignmentLeft._2+alignmentRight._2.substring(sizeOfSeed),
     alignmentLeft._3+alignmentRight._3.substring(sizeOfSeed))
   }
+   
+ def computeRatio(totalAlignment : (String, String, String), indelScore: Int, mismatchScore : Int) : Float = {
+   val ratioIndel = ((((totalAlignment._1.filter { x => x == '+' || x == '-' }.length +
+      totalAlignment._2.filter { x => x == '+' || x == '-' }.length).toFloat) / totalAlignment._1.length.toFloat).toFloat) * (indelScore.toFloat)
+
+    val ratioMM = ((((totalAlignment._2.filter { x => x != '|' }).length).toFloat / totalAlignment._2.length.toFloat).toFloat) * (mismatchScore.toFloat)
+   (ratioIndel + ratioMM)
+ }
   
   def printAlign(alignmentStr : (String, String, String)) = {
     val sizeOfChunk = 100

@@ -20,7 +20,7 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
   println("Initialisation BWT...")
   init()
   
-   def cToI(l : Char): Int = {
+   def charToInt(l : Char): Int = {
     l.toUpper match {
       case '$' => 4
       case 'A' => 0
@@ -43,10 +43,10 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
 
       if (ref.charAt(suffixTable(i)) != currentLetter) {
         currentLetter = ref.charAt(suffixTable(i))
-        c(cToI(currentLetter)) = i - 1
+        c(charToInt(currentLetter)) = i - 1
       }
 
-      tmpRank(cToI(burrowsWheeler(i))) += 1
+      tmpRank(charToInt(burrowsWheeler(i))) += 1
 
       if (i % SAMPLE == 0) {
         for (z <- 0 until 5)
@@ -60,7 +60,7 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
    */
   def rank(t: Char, i: Int, rankOfT: Int): Int = {
     if (i % SAMPLE == 0)
-      return rankOfT + ranks(i / SAMPLE)(cToI(t))
+      return rankOfT + ranks(i / SAMPLE)(charToInt(t))
     else {
       if (burrowsWheeler(i).toUpper == t.toUpper)
         rank(t, i - 1, rankOfT + 1)
@@ -113,7 +113,7 @@ class BurrowsWheelerTransform(ref: String, SAMPLE: Int) {
     exactSearch(w, i - 1, nk, nl)
   }
 
-  def rMin(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i - 1, 0) + 1
-  def rMax(t: Char, i: Int): Int = c(cToI(t)) + rank(t, i, 0)
+  def rMin(t: Char, i: Int): Int = c(charToInt(t)) + rank(t, i - 1, 0) + 1
+  def rMax(t: Char, i: Int): Int = c(charToInt(t)) + rank(t, i, 0)
 
 }
