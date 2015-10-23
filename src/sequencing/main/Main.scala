@@ -6,25 +6,32 @@ import sequencing.seeding._
 
 object Main extends App {
 
-  def align(read: String, s: Int, i: Int): Boolean = {
+  def align(read: String, s : Int, i : Int): Boolean = {
     
-    val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
-    val alignerRight = new Aligner((matchScore, mismatchScore, indelScore), ref.substring(s, endRef),
-      read.substring(i * sizeOfSeed), 0)
-    val alignmentRight = (alignerRight align)
+    var alignmentRight : (String,String,String) = ("","","")
+    var alignmentLeft : (String,String,String) = ("","","")
     
-    val refLeft = ref.substring(math.max(0, s - (read.length - read.substring(i * sizeOfSeed).length)), s + sizeOfSeed).reverse
-    val readLeft = read.substring(0, i * sizeOfSeed).reverse + ref.substring(s,s+sizeOfSeed)
-    val alignerLeft = new Aligner((matchScore, mismatchScore, indelScore), refLeft, readLeft, 0)
-    val alignmentLeft = (alignerLeft align)
+    if ( (i+1)*sizeOfSeed < read.length()) {
+      val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
+      val readRight = read.substring(i * sizeOfSeed)
+      val refRight = ref.substring(s,endRef)
+      val alignerRight = new Aligner((matchScore, mismatchScore, indelScore), ref.substring(s, endRef),read.substring(i * sizeOfSeed), 0)
+      alignmentRight = (alignerRight align)
+    }
+    if ( i != 0 ) {
+      val refLeft = ref.substring(math.max(0, s - (read.length - read.substring(i * sizeOfSeed).length)), s + sizeOfSeed).reverse
+      val readLeft = read.substring(0, i * sizeOfSeed).reverse + ref.substring(s,s+sizeOfSeed)
+      val alignerLeft = new Aligner((matchScore, mismatchScore, indelScore), refLeft, readLeft, 0)
+      alignmentLeft = (alignerLeft align)
+    }
 
     val totalAlignment = AlignerUtil.mergeAlign(alignmentLeft, alignmentRight, sizeOfSeed)
     
     if ((AlignerUtil.computeRatio(totalAlignment,indelScore,mismatchScore)) / (totalAlignment._1.length * (indelScore.toFloat)) <= ratioError) {
       AlignerUtil.printAlign(totalAlignment)
-      return true
-    }
-    return false
+      true
+    } else 
+      false
   }
 
   def run(read: String): Unit = {
@@ -33,8 +40,7 @@ object Main extends App {
       println("#" + i + "\t" + seed)
       val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
       indexSeed.foreach { s =>
-        val aligned = align(read, s, i)
-        if (aligned) {
+        if (align(read, s, i)) {
           if (reads.indexOf(read) != -1)
             arrayReadAligned(reads.indexOf(read)) = true
           else
@@ -84,8 +90,9 @@ object Main extends App {
   val arrayReadAligned = new Array[Boolean](reads.length)
 
 //  reads.foreach { r =>
-  val r = reads(0)
+    val r = reads(0)
     val read = r.toUpperCase
+    println(read)
     run(read)
     run(read.reverse)
 //  }
