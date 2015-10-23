@@ -14,10 +14,10 @@ object AlignerUtil {
   }
    
  def computeRatio(totalAlignment : (String, String, String), indelScore: Int, mismatchScore : Int) : Float = {
-   val ratioIndel = ((((totalAlignment._1.filter { x => x == '+' || x == '-' }.length +
-      totalAlignment._2.filter { x => x == '+' || x == '-' }.length).toFloat) / totalAlignment._1.length.toFloat).toFloat) * (indelScore.toFloat)
+   val ratioIndel = ((totalAlignment._1.filter { x => x == '+' || x == '-' }.length +
+      totalAlignment._2.filter { x => x == '+' || x == '-' }.length).toFloat) * (indelScore.toFloat)
 
-    val ratioMM = ((((totalAlignment._2.filter { x => x != '|' }).length).toFloat / totalAlignment._2.length.toFloat).toFloat) * (mismatchScore.toFloat)
+    val ratioMM = ((totalAlignment._2.filter { x => x != '|' }).length).toFloat * (mismatchScore.toFloat)
    (ratioIndel + ratioMM)
  }
   
@@ -35,6 +35,7 @@ object AlignerUtil {
     println()
     println("numbers of match : " + (alignmentStr._2.filter { x => x == '|' }).length())
     println("numbers of gaps : " + (alignmentStr._1.filter { x => x == '+'}.length() + alignmentStr._3.filter {x => x == '-'}.length))
+    println()
   }
 }
 
