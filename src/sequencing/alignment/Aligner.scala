@@ -105,12 +105,12 @@ class Aligner(score : (Int,Int,Int), genX : String, genY : String, k : Int) {
         buildBacktraceStr(0 , y-1, "+"+alignment)
       } else if (y == 0) {
         buildBacktraceStr(x-1, 0, "-"+alignment)
+      } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
+        buildBacktraceStr(x-1,y-1, "|"+alignment)
       } else if(matrix(x)(y) == matrix(x)(y-1)+indelScore) {//insertion 
         buildBacktraceStr(x,y-1, "+"+alignment)
       } else if(matrix(x)(y) == matrix(x-1)(y)+indelScore) {//deletion
         buildBacktraceStr(x-1,y, "-"+alignment)
-      } else if(matrix(x)(y) == matrix(x-1)(y-1)+matchScore) {//match
-        buildBacktraceStr(x-1,y-1, "|"+alignment)
       } else {
         buildBacktraceStr(x-1,y-1, " "+alignment)
       }

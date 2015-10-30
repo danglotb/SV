@@ -38,7 +38,7 @@ object Main extends App {
     var i = 0
     while(! arrayReadAligned(index) && i < read.length - sizeOfSeed) {
       val seed = read.substring(i, i + sizeOfSeed)
-      val indexSeed = b.search(seed, sizeOfSeed-1 , 0, 1, ref.length() - 1)
+      val indexSeed = b.search(seed, sizeOfSeed-1 , nbError, 1, ref.length() - 1)
       indexSeed.foreach { s =>
         if (align(read, s, i)) {
         if (print) println("#" + i + "\t" + seed)
@@ -62,12 +62,14 @@ object Main extends App {
 
   val b = new BurrowsWheelerTransform(ref + "$", 16)
 
-  val print: Boolean = options.getOrElse("print", false).toString().toBoolean
+  val print : Boolean = options.getOrElse("print", false).toString().toBoolean
 
-  val sizeOfSeed: Int = options.getOrElse("sseed", 25).toString.toInt
+  val sizeOfSeed : Int = options.getOrElse("sseed", 25).toString.toInt
 
   val ratioError: Float = options.getOrElse("ratio", 1.0).toString.toFloat
 
+  val nbError : Int = options.getOrElse("error", 1).toString.toInt
+  
   val arrayReadAligned = new Array[Boolean](reads.length)
 
   val time = System.currentTimeMillis()

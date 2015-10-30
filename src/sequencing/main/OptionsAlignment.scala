@@ -21,6 +21,7 @@ object OptionsAlignment {
         case "-sc" :: matchScore :: mismacthScore :: indelScore :: tail =>
           options(opt ++ Map("score" -> (matchScore, mismacthScore, indelScore)), tail)
         case "-k" :: k :: tail           => options(opt ++ Map("k" -> k), tail)
+        case "-err" :: err :: tail       => options(opt ++ Map("error" -> err), tail)
         case "-f" :: ref :: read :: tail => options((opt ++ Map("ref" -> ref)) ++ Map("read" -> read), tail)
         case "-r" :: ratio :: tail       => options(opt ++ Map("ratio" -> ratio), tail)
         case "-sseed" :: sseed :: tail   => options(opt ++ Map("sizeOfSeed" -> sseed), tail)
