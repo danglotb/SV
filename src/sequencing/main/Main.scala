@@ -10,15 +10,15 @@ object Main extends App {
 
     var alignmentRight: (String, String, String) = ("", "", "")
     var alignmentLeft: (String, String, String) = ("", "", "")
-
-    val endRef = math.min(s + read.substring(i * sizeOfSeed).length(), ref.length)
-    val readRight = read.substring(i * sizeOfSeed)
+  
+    val readRight = read.substring(i)
+    val endRef = math.min(s + readRight.length(), ref.length)
     val refRight = ref.substring(s, endRef)
-    val alignerRight = new Aligner((matchScore, mismatchScore, indelScore), ref.substring(s, endRef), read.substring(i * sizeOfSeed), 0)
+    val alignerRight = new Aligner((matchScore, mismatchScore, indelScore), refRight, readRight, 0)
     alignmentRight = (alignerRight align)
 
     if (i != 0) {
-      val readLeft = read.substring(0, i * sizeOfSeed)
+      val readLeft = read.substring(0, i)
       val refLeft = ref.substring(s - readLeft.length(), s)
       val alignerLeft = new Aligner((matchScore, mismatchScore, indelScore), refLeft, readLeft, 0)
       alignmentLeft = (alignerLeft align)
@@ -34,43 +34,22 @@ object Main extends App {
       false
   }
 
-  def run(read: String): Unit = {
-    for (i <- 0 until (read.length / sizeOfSeed)) {
-      val seed = read.substring(i * sizeOfSeed, (i + 1) * sizeOfSeed)
-      if (print) println("#" + i + "\t" + seed)
-      val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
+  def run(read: String, index : Int): Unit = {
+    var i = 0
+    while(! arrayReadAligned(index) && i < read.length - sizeOfSeed) {
+      val seed = read.substring(i, i + sizeOfSeed)
+      val indexSeed = b.search(seed, sizeOfSeed-1 , 0, 1, ref.length() - 1)
       indexSeed.foreach { s =>
         if (align(read, s, i)) {
+        if (print) println("#" + i + "\t" + seed)
           if (reads.indexOf(read) != -1)
             arrayReadAligned(reads.indexOf(read)) = true
           else
             arrayReadAligned(reads.indexOf(read.reverse)) = true
         }
       }
+      i = i + 1 
     }
-
-    //Getting the last seed
-//    if ((read.length() % sizeOfSeed) != 0) {
-//      val seed = read.substring(read.length() - (read.length() % sizeOfSeed))
-//      val indexSeed = b.search(seed, seed.length() - 1, 0, 1, ref.length() - 1)
-//      indexSeed.foreach { s =>
-//
-//        val readAlign = read.reverse
-//        val refAlign = ref.substring(s, s + 1).reverse
-//        val aligner = new Aligner((matchScore, mismatchScore, indelScore), refAlign,
-//          readAlign, 0)
-//        val alignment = (aligner align)
-//
-//        if (AlignerUtil.computeRatio(alignment, indelScore, mismatchScore) / (alignment._1.length * (indelScore.toFloat)) <= ratioError) {
-//          AlignerUtil.printAlign(alignment)
-//          if (reads.indexOf(read) != -1)
-//            arrayReadAligned(reads.indexOf(read)) = true
-//          else
-//            arrayReadAligned(reads.indexOf(read.reverse)) = true
-//        }
-//      }
-//    }
-
   }
 
   val options = OptionsAlignment.options(Map(), args.toList)
@@ -83,22 +62,22 @@ object Main extends App {
 
   val b = new BurrowsWheelerTransform(ref + "$", 16)
 
-  val print : Boolean = options.getOrElse("print", false).toString().toBoolean
-  
+  val print: Boolean = options.getOrElse("print", false).toString().toBoolean
+
   val sizeOfSeed: Int = options.getOrElse("sseed", 25).toString.toInt
 
-  val ratioError: Float = options.getOrElse("ratio", 0.5).toString.toFloat
+  val ratioError: Float = options.getOrElse("ratio", 1.0).toString.toFloat
 
   val arrayReadAligned = new Array[Boolean](reads.length)
 
   val time = System.currentTimeMillis()
-  
+
   reads.foreach { r =>
     val read = r.toUpperCase
     if (print)
       println("%" + reads.indexOf(r) + "\t" + read)
-    run(read)
-    run(read.reverse)
+    run(read, reads.indexOf(r))
+    run(read.reverse, reads.indexOf(r))
   }
-  println(arrayReadAligned.toList.filter { x => x == true }.length + " / " + reads.length+" en " + (System.currentTimeMillis() - time) + " ms")
+  println(arrayReadAligned.toList.filter { x => x == true }.length + " / " + reads.length + " en " + (System.currentTimeMillis() - time) + " ms")
 }
