@@ -8,11 +8,9 @@ Choix d'implémentations :
 	- Echantillonage pour la fonction Rank
 	- Backtracking pour la recherche de seed (gestion d'érreurs)
 	- Extension des deux cotés avec merge des alignements à la fin.
-	- Lors des resultats, le temps en ms est pris avec System.currentTimeMillis() dans le code, celui en seconde avec /usr/bin/time -v
+	- Lors des resultats, le temps en ms est pris avec System.currentTimeMillis() dans le code, celui en secondes avec /usr/bin/time -v
 	
-	- Pour ce qui est de la selection des alignements, j'ai tenté plusieurs choses :
-		- compter le nombre d'erreurs (indel/mismatch) et y autoriser un certain nombre dans l'alignement.(10% par exemple)
-		- pondérer les erreurs avec leurs scores lors de l'alignement.
+	- Pour ce qui est de la selection des alignements je compte le nombre d'erreurs (indel/mismatch) et y autoriser un certain nombre dans l'alignement.(10% par exemple)
 	
 Résultats : 
 
@@ -25,7 +23,6 @@ Résultats :
 		- Construction de la Suffix Table : 29 ms 
 		- Construction de la BWT : 7 ms
 		- Alignement des reads : 5033 ms 
-		- 
 
 		/usr/bin/time -v scala -J-Xms2G -J-Xmx2G -cp bin sequencing.main.Main -f input/NC_002549.fna input/SRR1930021.fastq -sseed 25 -r 0.5
 		
