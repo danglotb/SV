@@ -65,10 +65,10 @@ object Main extends App {
   val print : Boolean = options.getOrElse("print", false).toString().toBoolean
 
   val sizeOfSeed : Int = options.getOrElse("sseed", 25).toString.toInt
-
+  
   val ratioError: Float = options.getOrElse("ratio", 1.0).toString.toFloat
 
-  val nbError : Int = options.getOrElse("error", 1).toString.toInt
+  val nbError : Int = options.getOrElse("error", 0).toString.toInt
   
   val arrayReadAligned = new Array[Boolean](reads.length)
 

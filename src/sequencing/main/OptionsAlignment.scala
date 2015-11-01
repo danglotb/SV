@@ -20,11 +20,10 @@ object OptionsAlignment {
       args match {
         case "-sc" :: matchScore :: mismacthScore :: indelScore :: tail =>
           options(opt ++ Map("score" -> (matchScore, mismacthScore, indelScore)), tail)
-        case "-k" :: k :: tail           => options(opt ++ Map("k" -> k), tail)
         case "-err" :: err :: tail       => options(opt ++ Map("error" -> err), tail)
         case "-f" :: ref :: read :: tail => options((opt ++ Map("ref" -> ref)) ++ Map("read" -> read), tail)
         case "-r" :: ratio :: tail       => options(opt ++ Map("ratio" -> ratio), tail)
-        case "-sseed" :: sseed :: tail   => options(opt ++ Map("sizeOfSeed" -> sseed), tail)
+        case "-sseed" :: sseed :: tail   => options(opt ++ Map("sseed" -> sseed), tail)
         case "-p" :: tail                => options(opt ++ Map("print" -> true), tail)
         case "-h" :: tail                => usage(); opt
         case _                           => usage(); opt
@@ -38,9 +37,11 @@ object OptionsAlignment {
   def usage(): Unit = {
     print("Options availables : \n")
     print("\t-sc <matchScore> <mismatchScore> <indelScore> to specify the score of a match( (5, -4, -10) if not)\n")
-    print("\t-k <IntValue> to specify the numbers of errors(3 if not)\n")
     print("\t-file <pathToRefFile> <pathToReadFile> to specify files of gen you align.\n")
     print("\t-r <FloatValue> to specify the ratio of errors accepted (weigthed by the score (0.5 by default)).\n")
+    print("\t-err <IntValue> to specify the number of errors in the seed researching(0 by default).\n")
+    print("\t-sseed <IntValue> to specify the size (in number of nt) of seeds.\n")
+    print("\t-p to print alignment.\n")
     print("\t-h to print this help.\n")
     System.exit(1)
   }

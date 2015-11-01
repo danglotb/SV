@@ -9,9 +9,14 @@ Choix d'implémentations :
 	- Backtracking pour la recherche de seed (gestion d'érreurs)
 	- Extension des deux cotés avec merge des alignements à la fin.
 	- Lors des resultats, le temps en ms est pris avec System.currentTimeMillis() dans le code, celui en secondes avec /usr/bin/time -v
-	
+
 	- Pour ce qui est de la selection des alignements je compte le nombre d'erreurs (indel/mismatch) et y autoriser un certain nombre dans l'alignement.(10% par exemple)
 	
+	Commande pour le jeu de test fournis : 
+		scala -cp bin sequencing.main.Main -f input/shortGen input/shortRead.fastq -sseed 2 -r 0
+		
+		On obtient alors 7 / 11 read alignés, 4 ne se trouve pas dans le gene, et 1 est dans l'autre sens de lecture. (voir annotation)
+
 Résultats : 
 
 	Alignement sur les 3389 reads sur le genome d'ébola (NC_002549.fna)
@@ -36,16 +41,16 @@ Résultats :
 		- Construction de la BWT : 2 887 ms
 		- Alignement des reads : 64 359 ms
 		
-		/usr/bin/time -v scala -J-Xms2G -J-Xmx2G -cp bin sequencing.main.Main -f input/Homo_sapiens.GRCh38.dna.chromosome.21.fa input/DRR000547.20K.fastq -sseed 10 -r 0.5 -err 0
+		/usr/bin/time -v scala -J-Xms2G -J-Xmx2G -cp bin sequencing.main.Main -f input/Homo_sapiens.GRCh38.dna.chromosome.21.fa input/DRR000547.20K.fastq -sseed 10 -r 0.5
 		
 		Deuxième run : 
 		- graine avec 1 erreur de taille 10
 		- position des graines incrémentés de 1
 		- temps :  secs
-		-  / 20000 read alignés ( environ % )
+		- 9473 / 20000 read alignés ( environ 47% )
 		
 		- Construction de la Suffix Table : 166 056 ms
 		- Construction de la BWT :  3 003 ms
-		- Alignement des reads :  ms
+		- Alignement des reads : 1 574 076 ms
 		
 		/usr/bin/time -v scala -J-Xms2G -J-Xmx2G -cp bin sequencing.main.Main -f input/Homo_sapiens.GRCh38.dna.chromosome.21.fa input/DRR000547.20K.fastq -sseed 10 -r 0.5 -err 1
